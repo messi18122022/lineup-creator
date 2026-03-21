@@ -7,14 +7,13 @@ import { FormationKey } from "@/types";
 
 interface FieldProps {
   formation: FormationKey;
-  playerCount: number;
   playerNames: string[];
   onNameChange: (index: number, name: string) => void;
 }
 
-export default function Field({ formation, playerCount, playerNames, onNameChange }: FieldProps) {
+export default function Field({ formation, playerNames, onNameChange }: FieldProps) {
   const positions = FORMATIONS[formation].positions;
-  const count = Math.min(playerCount, positions.length);
+  const count = positions.length;
 
   return (
     <div className="relative h-full" style={{ aspectRatio: "68 / 105" }}>

@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
-import { FormationKey } from "@/types";
+import { FormationKey, GameMode } from "@/types";
+import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
 
 const DEFAULT_NAMES = [
   "Müller", "Meier", "Schmidt", "Hofmann", "Weber",
@@ -11,9 +12,14 @@ const DEFAULT_NAMES = [
 ];
 
 export default function HomePage() {
-  const [playerCount, setPlayerCount] = useState(11);
+  const [mode, setMode] = useState<GameMode>("11v11");
   const [formation, setFormation] = useState<FormationKey>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
+
+  function handleModeChange(newMode: GameMode) {
+    setMode(newMode);
+    setFormation(DEFAULT_FORMATION_FOR_MODE[newMode]);
+  }
 
   function handleNameChange(index: number, name: string) {
     setPlayerNames((prev) => {
@@ -26,16 +32,15 @@ export default function HomePage() {
   return (
     <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
       <Sidebar
-        playerCount={playerCount}
+        mode={mode}
         formation={formation}
-        onPlayerCountChange={setPlayerCount}
+        onModeChange={handleModeChange}
         onFormationChange={setFormation}
       />
       <main className="flex flex-1 items-center justify-center p-6">
         <div className="h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
             formation={formation}
-            playerCount={playerCount}
             playerNames={playerNames}
             onNameChange={handleNameChange}
           />
