@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
 import UpgradeButton from "./UpgradeButton";
 
 export default function UserButton() {
-  const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [isPro, setIsPro] = useState(false);
 
@@ -38,7 +36,7 @@ export default function UserButton() {
   async function handleSignOut() {
     const supabase = createClient();
     await supabase.auth.signOut();
-    router.refresh();
+    window.location.href = "/";
   }
 
   if (!user) {
