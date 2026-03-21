@@ -53,7 +53,7 @@ export default function AccordionCard({ label, selectedLabel, children }: Accord
         style={{ maxHeight: open ? height : 0 }}
         className="transition-[max-height] duration-300 ease-in-out overflow-hidden"
       >
-        <div ref={contentRef} className="px-4 pb-4 pt-1 flex flex-col gap-2">
+        <div ref={contentRef} className="px-4 pb-4 pt-4 flex flex-col gap-2">
           {children}
         </div>
       </div>
