@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { stripe } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
@@ -11,6 +11,7 @@ export async function POST(request: Request) {
   }
 
   const { origin } = new URL(request.url);
+  const stripe = getStripe();
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
