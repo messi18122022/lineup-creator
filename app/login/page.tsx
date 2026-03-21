@@ -18,10 +18,13 @@ export default function LoginPage() {
     setLoading(true);
 
     const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(`Error: ${error.message} (${error.status})`);
+      setLoading(false);
+    } else if (!data.session) {
+      setError("No session returned — email may not be confirmed.");
       setLoading(false);
     } else {
       window.location.href = "/";
