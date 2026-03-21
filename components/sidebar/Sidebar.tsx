@@ -11,8 +11,8 @@ interface SidebarProps {
 
 export default function Sidebar({ mode, formation, onModeChange, onFormationChange }: SidebarProps) {
   return (
-    <aside className="w-60 min-w-60 bg-slate-800 border-r border-slate-700 flex flex-col gap-4 p-5">
-      <h1 className="text-sm font-bold uppercase tracking-widest text-slate-200">
+    <aside className="w-60 min-w-60 bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
+      <h1 className="text-sm font-bold uppercase tracking-widest text-zinc-200">
         Lineup Creator
       </h1>
       <ModeCard value={mode} onChange={onModeChange} />

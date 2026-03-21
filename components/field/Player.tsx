@@ -35,9 +35,9 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
     >
       {/* Dot */}
       <div
-        className={`w-9 h-9 rounded-full border-[3px] border-white shadow-lg flex items-center justify-center
-          text-white text-[0.6rem] font-bold transition-transform hover:scale-110
-          ${isGoalkeeper ? "bg-amber-700" : "bg-blue-700"}`}
+        className={`w-14 h-14 rounded-full border-[3px] border-white shadow-lg flex items-center justify-center
+          text-zinc-900 text-sm font-bold transition-transform hover:scale-110
+          ${isGoalkeeper ? "bg-yellow-300" : "bg-yellow-400"}`}
       >
         {index + 1}
       </div>
@@ -54,14 +54,14 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
             if (e.key === "Enter") commit();
             if (e.key === "Escape") setEditing(false);
           }}
-          className="text-[0.65rem] font-semibold text-slate-900 bg-white rounded px-1 py-0.5
+          className="text-xs font-semibold text-slate-900 bg-white rounded px-1 py-0.5
             outline outline-2 outline-yellow-400 w-20 text-center"
         />
       ) : (
         <span
           onDoubleClick={startEdit}
-          className="text-[0.65rem] font-semibold text-white bg-black/40 rounded px-1 py-0.5
-            whitespace-nowrap cursor-default"
+          className="text-xs font-semibold text-white rounded px-1 py-0.5
+            whitespace-nowrap cursor-default bg-black/70"
           title="Double-click to edit"
         >
           {name}
