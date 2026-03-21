@@ -23,10 +23,11 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // Use getSession instead of getUser to avoid server-side key validation issues
+  const { data: { session } } = await supabase.auth.getSession();
 
   // Protect /pro routes
-  if (!user && request.nextUrl.pathname.startsWith("/pro")) {
+  if (!session && request.nextUrl.pathname.startsWith("/pro")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
