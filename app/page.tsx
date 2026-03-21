@@ -6,10 +6,7 @@ import Field from "@/components/field/Field";
 import { FormationKey, GameMode } from "@/types";
 import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
 
-const DEFAULT_NAMES = [
-  "Müller", "Meier", "Schmidt", "Hofmann", "Weber",
-  "Fischer", "Bauer", "Koch", "Richter", "Klein", "Wolf",
-];
+const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
 export default function HomePage() {
   const [mode, setMode] = useState<GameMode>("11v11");
