@@ -30,7 +30,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-950 text-slate-100">
+    <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
       <Sidebar
         mode={mode}
         formation={formation}

@@ -37,7 +37,7 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
       <div
         className={`w-9 h-9 rounded-full border-[3px] border-white shadow-lg flex items-center justify-center
           text-white text-[0.6rem] font-bold transition-transform hover:scale-110
-          ${isGoalkeeper ? "bg-amber-700" : "bg-blue-700"}`}
+          ${isGoalkeeper ? "bg-zinc-500" : "bg-green-700"}`}
       >
         {index + 1}
       </div>

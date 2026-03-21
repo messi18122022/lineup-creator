@@ -13,15 +13,15 @@ export default function FormationCard({ mode, value, onChange }: FormationCardPr
   const options = FORMATIONS_BY_MODE[mode];
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-xl p-4">
-      <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 mb-3">
+    <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-4">
+      <p className="text-xs font-semibold uppercase tracking-widest text-zinc-400 mb-3">
         Formation
       </p>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as FormationKey)}
-        className="w-full bg-slate-800 text-slate-100 border border-slate-600 rounded-lg
-          px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full bg-zinc-800 text-zinc-100 border border-zinc-600 rounded-lg
+          px-3 py-2 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-green-500"
       >
         {options.map((key) => (
           <option key={key} value={key}>
