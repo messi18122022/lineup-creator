@@ -1,5 +1,6 @@
 import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
+import UserButton from "./UserButton";
 import { FormationKey, GameMode } from "@/types";
 
 interface SidebarProps {
@@ -17,6 +18,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
       </h1>
       <ModeCard value={mode} onChange={onModeChange} />
       <FormationCard mode={mode} value={formation} onChange={onFormationChange} />
+      <UserButton />
     </aside>
   );
 }
