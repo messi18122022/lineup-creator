@@ -4,12 +4,13 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session: authSession } } = await supabase.auth.getSession();
 
-  if (!user) {
+  if (!authSession?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  const user = authSession.user;
   const { origin } = new URL(request.url);
   const stripe = getStripe();
 
