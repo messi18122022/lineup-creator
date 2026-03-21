@@ -5,19 +5,33 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import Link from "next/link";
+import UpgradeButton from "./UpgradeButton";
 
 export default function UserButton() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [isPro, setIsPro] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
 
+      if (user) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("is_pro")
+          .eq("id", user.id)
+          .single();
+        setIsPro(data?.is_pro ?? false);
+      }
+    }
+
+    load();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => load());
     return () => subscription.unsubscribe();
   }, []);
 
@@ -41,6 +55,11 @@ export default function UserButton() {
 
   return (
     <div className="mt-auto flex flex-col gap-2">
+      {isPro ? (
+        <span className="text-xs font-semibold text-yellow-400">⚡ Pro</span>
+      ) : (
+        <UpgradeButton />
+      )}
       <p className="text-xs text-zinc-400 truncate">{user.email}</p>
       <button
         onClick={handleSignOut}
