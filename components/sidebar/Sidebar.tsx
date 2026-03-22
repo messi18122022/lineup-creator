@@ -1,5 +1,6 @@
 import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
+import UserButton from "./UserButton";
 import { FormationKey, GameMode } from "@/types";
 
 interface SidebarProps {
@@ -7,9 +8,10 @@ interface SidebarProps {
   formation: FormationKey;
   onModeChange: (mode: GameMode) => void;
   onFormationChange: (formation: FormationKey) => void;
+  userEmail: string;
 }
 
-export default function Sidebar({ mode, formation, onModeChange, onFormationChange }: SidebarProps) {
+export default function Sidebar({ mode, formation, onModeChange, onFormationChange, userEmail }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
       <h1 className="text-sm font-bold uppercase tracking-widest text-zinc-200">
@@ -17,6 +19,9 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
       </h1>
       <ModeCard value={mode} onChange={onModeChange} />
       <FormationCard mode={mode} value={formation} onChange={onFormationChange} />
+      <div className="mt-auto">
+        <UserButton email={userEmail} />
+      </div>
     </aside>
   );
 }
