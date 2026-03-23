@@ -69,7 +69,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             userEmail={userEmail}
           />
         </div>
-        <div className="absolute top-4 -right-8 flex items-center gap-2">
+        <div className="absolute top-4 -right-8">
           <button
             onClick={handleToggle}
             className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
@@ -78,7 +78,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             <SidebarToggleIcon />
           </button>
           <span
-            className={`text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 ${hintVisible ? "opacity-100" : "opacity-0"}`}
+            className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 ${hintVisible ? "opacity-100" : "opacity-0"}`}
           >
             {sidebarOpen ? "Click to hide sidebar" : "Click to show sidebar"}
           </span>
