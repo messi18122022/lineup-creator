@@ -42,7 +42,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
-      <div className="relative flex-shrink-0">
+      <div className="relative flex-shrink-0 h-full">
         {sidebarOpen && (
           <Sidebar
             mode={mode}

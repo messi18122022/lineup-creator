@@ -13,7 +13,7 @@ interface SidebarProps {
 
 export default function Sidebar({ mode, formation, onModeChange, onFormationChange, userEmail }: SidebarProps) {
   return (
-    <aside className="w-60 min-w-60 bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
+    <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
       <h1 className="text-sm font-bold uppercase tracking-widest text-center bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3">
         <span className="text-green-500">Lineup</span>
         <span className="text-zinc-200"> Creator</span>
