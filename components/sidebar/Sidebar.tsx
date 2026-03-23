@@ -3,6 +3,15 @@ import FormationCard from "./FormationCard";
 import UserButton from "./UserButton";
 import { FormationKey, GameMode } from "@/types";
 
+function SidebarToggleIcon() {
+  return (
+    <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0.75" y="0.75" width="18.5" height="14.5" rx="3.25" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="6.75" y1="1" x2="6.75" y2="15" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 interface SidebarProps {
   mode: GameMode;
   formation: FormationKey;
@@ -22,10 +31,10 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
         </h1>
         <button
           onClick={onCollapse}
-          className="text-zinc-400 hover:text-zinc-100 transition-colors ml-2"
+          className="text-green-500 hover:text-green-400 transition-colors ml-2"
           title="Close sidebar"
         >
-          ‹
+          <SidebarToggleIcon />
         </button>
       </div>
       <ModeCard value={mode} onChange={onModeChange} />

@@ -43,13 +43,16 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
           onCollapse={() => setSidebarOpen(false)}
         />
       ) : (
-        <div className="flex flex-col items-center pt-4 w-8 min-w-8 bg-zinc-900 border-r border-zinc-700">
+        <div className="flex flex-col items-center pt-4 w-10 min-w-10 bg-zinc-900 border-r border-zinc-700">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-zinc-400 hover:text-zinc-100 transition-colors"
+            className="text-green-500 hover:text-green-400 transition-colors"
             title="Open sidebar"
           >
-            ›
+            <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="0.75" y="0.75" width="18.5" height="14.5" rx="3.25" stroke="currentColor" strokeWidth="1.5" />
+              <line x1="6.75" y1="1" x2="6.75" y2="15" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
           </button>
         </div>
       )}
