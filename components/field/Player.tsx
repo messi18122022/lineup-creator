@@ -35,12 +35,9 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
     >
       {/* Dot */}
       <div
-        className={`w-14 h-14 rounded-full border-[3px] border-white shadow-lg flex items-center justify-center
-          text-zinc-900 text-sm font-bold transition-transform hover:scale-110
+        className={`w-9 h-9 rounded-full border-[3px] border-white shadow-lg transition-transform hover:scale-110
           ${isGoalkeeper ? "bg-yellow-300" : "bg-yellow-400"}`}
-      >
-        {index + 1}
-      </div>
+      />
 
       {/* Name / input */}
       {editing ? (
