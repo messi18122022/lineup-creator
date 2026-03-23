@@ -22,23 +22,23 @@ body {
 }
 
 @keyframes shake {
-  /* first shake */
+  /* first shake: 0–20% (0–0.5s) */
   0%   { transform: translateX(0); }
-  5%   { transform: translateX(-5px); }
-  13%  { transform: translateX(5px); }
-  20%  { transform: translateX(-4px); }
-  27%  { transform: translateX(4px); }
-  33%  { transform: translateX(0); }
-  /* pause */
-  67%  { transform: translateX(0); }
-  /* second shake */
-  72%  { transform: translateX(-5px); }
-  80%  { transform: translateX(5px); }
-  87%  { transform: translateX(-4px); }
-  93%  { transform: translateX(4px); }
+  4%   { transform: translateX(-5px); }
+  8%   { transform: translateX(5px); }
+  12%  { transform: translateX(-4px); }
+  16%  { transform: translateX(4px); }
+  20%  { transform: translateX(0); }
+  /* pause: 20–70% (0.5s–1.75s) */
+  70%  { transform: translateX(0); }
+  /* second shake: 70–100% (1.75s–2.5s) */
+  74%  { transform: translateX(-5px); }
+  82%  { transform: translateX(5px); }
+  88%  { transform: translateX(-4px); }
+  94%  { transform: translateX(4px); }
   100% { transform: translateX(0); }
 }
 
 @theme inline {
-  --animate-shake: shake 1.5s ease-in-out 1s 1 both;
+  --animate-shake: shake 2.5s ease-in-out 1s 1 both;
 }
