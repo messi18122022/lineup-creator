@@ -46,7 +46,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
         <div className="flex flex-col items-center pt-4 w-10 min-w-10 bg-zinc-900 border-r border-zinc-700">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="text-green-500 hover:text-green-400 transition-colors"
+            className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
             title="Open sidebar"
           >
             <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">

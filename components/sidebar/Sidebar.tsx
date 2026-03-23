@@ -31,7 +31,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
         </h1>
         <button
           onClick={onCollapse}
-          className="text-green-500 hover:text-green-400 transition-colors ml-2"
+          className="text-green-500 hover:text-green-400 transition-colors cursor-pointer pl-2 border-l border-zinc-700"
           title="Close sidebar"
         >
           <SidebarToggleIcon />
