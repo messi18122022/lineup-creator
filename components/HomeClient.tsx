@@ -32,7 +32,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    hintTimer.current = setTimeout(() => setHintVisible(false), 3000);
+    hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
     return () => {
       if (hintTimer.current) clearTimeout(hintTimer.current);
     };
