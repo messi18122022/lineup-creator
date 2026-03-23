@@ -63,7 +63,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
         </button>
       </div>
       <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
-        <div className="max-h-full max-w-full" style={{ aspectRatio: "68 / 105", height: "100%" }}>
+        <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
             formation={formation}
             playerNames={playerNames}
