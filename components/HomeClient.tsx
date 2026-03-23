@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
 import { FormationKey, GameMode } from "@/types";
@@ -28,6 +28,21 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
+  const [hintVisible, setHintVisible] = useState(true);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
+    return () => {
+      if (hintTimer.current) clearTimeout(hintTimer.current);
+    };
+  }, []);
+
+  function handleToggle() {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    setHintVisible(false);
+    setSidebarOpen((v) => !v);
+  }
 
   function handleModeChange(newMode: GameMode) {
     setMode(newMode);
@@ -54,13 +69,20 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             userEmail={userEmail}
           />
         </div>
-        <button
-          onClick={() => setSidebarOpen((v) => !v)}
-          className="absolute top-4 -right-8 text-green-500 hover:text-green-400 transition-colors cursor-pointer"
-          title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-        >
-          <SidebarToggleIcon />
-        </button>
+        <div className="absolute top-4 -right-8">
+          <button
+            onClick={handleToggle}
+            className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+          >
+            <SidebarToggleIcon />
+          </button>
+          <span
+            className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 ${hintVisible ? "opacity-100" : "opacity-0"}`}
+          >
+            {sidebarOpen ? "Click to hide sidebar" : "Click to show sidebar"}
+          </span>
+        </div>
       </div>
       <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
         <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
