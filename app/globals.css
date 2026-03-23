@@ -22,14 +22,14 @@ body {
 }
 
 @keyframes shake {
-  /* first shake: 0–20% (0–0.5s) */
+  /* first shake: 0–30% (0–0.75s) */
   0%   { transform: translateX(0); }
-  4%   { transform: translateX(-5px); }
-  8%   { transform: translateX(5px); }
-  12%  { transform: translateX(-4px); }
-  16%  { transform: translateX(4px); }
-  20%  { transform: translateX(0); }
-  /* pause: 20–70% (0.5s–1.75s) */
+  6%   { transform: translateX(-5px); }
+  12%  { transform: translateX(5px); }
+  18%  { transform: translateX(-4px); }
+  24%  { transform: translateX(4px); }
+  30%  { transform: translateX(0); }
+  /* pause: 30–70% (0.75s–1.75s) */
   70%  { transform: translateX(0); }
   /* second shake: 70–100% (1.75s–2.5s) */
   74%  { transform: translateX(-5px); }
