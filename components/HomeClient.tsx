@@ -78,7 +78,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             <SidebarToggleIcon />
           </button>
           <span
-            className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 ${hintVisible ? "opacity-100" : "opacity-0"}`}
+            className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 animate-shake ${hintVisible ? "opacity-100" : "opacity-0"}`}
           >
             {sidebarOpen ? "Click to hide sidebar" : "Click to show sidebar"}
           </span>
