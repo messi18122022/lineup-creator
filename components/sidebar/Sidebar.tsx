@@ -25,9 +25,10 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
         ) : (
           <a
             href="/auth"
-            className="block text-xs text-zinc-400 hover:text-zinc-200 transition-colors pt-2 border-t border-zinc-700"
+            className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
           >
-            Login / Register
+            <span className="block text-sm font-semibold text-white">Unlock Pro</span>
+            <span className="block text-xs text-green-200 mt-0.5">Login or register to get Pro features</span>
           </a>
         )}
       </div>
