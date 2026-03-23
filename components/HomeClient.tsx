@@ -42,8 +42,8 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
-      <div className="relative flex-shrink-0 h-full">
-        {sidebarOpen && (
+      <div className="relative h-full flex-shrink-0">
+        <div className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}>
           <Sidebar
             mode={mode}
             formation={formation}
@@ -51,7 +51,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             onFormationChange={setFormation}
             userEmail={userEmail}
           />
-        )}
+        </div>
         <button
           onClick={() => setSidebarOpen((v) => !v)}
           className="absolute top-4 -right-8 text-green-500 hover:text-green-400 transition-colors cursor-pointer"
