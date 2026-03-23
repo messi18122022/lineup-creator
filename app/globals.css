@@ -31,11 +31,12 @@ body {
   20%  { transform: translateX(0); }
   /* pause: 20–70% (0.5s–1.75s) */
   70%  { transform: translateX(0); }
-  /* second shake: 70–100% (1.75s–2.5s) */
+  /* second shake: 70–90% (1.75s–2.25s) — same speed as first */
   74%  { transform: translateX(-5px); }
-  82%  { transform: translateX(5px); }
-  88%  { transform: translateX(-4px); }
-  94%  { transform: translateX(4px); }
+  78%  { transform: translateX(5px); }
+  82%  { transform: translateX(-4px); }
+  86%  { transform: translateX(4px); }
+  90%  { transform: translateX(0); }
   100% { transform: translateX(0); }
 }
 
