@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import HomeClient from "@/components/HomeClient";
+import HomeClientDynamic from "@/components/HomeClientDynamic";
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -7,5 +7,5 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return <HomeClient userEmail={user?.email ?? null} />;
+  return <HomeClientDynamic userEmail={user?.email ?? null} />;
 }
