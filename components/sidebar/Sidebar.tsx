@@ -28,7 +28,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
             className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
           >
             <span className="block text-sm font-semibold text-white">Unlock Pro</span>
-            <span className="block text-xs text-green-200 mt-0.5">Login or register to get Pro features</span>
+            <span className="block text-xs text-green-200 mt-0.5">Pro version coming soon</span>
           </a>
         )}
       </div>
