@@ -47,7 +47,14 @@ export default function AuthPage() {
           </button>
         </div>
 
-        {isLogin ? (
+        {registerState?.confirm ? (
+          <div className="bg-green-900/30 border border-green-700 rounded-lg p-4 flex flex-col gap-2">
+            <p className="text-green-300 text-sm font-medium">Check your inbox!</p>
+            <p className="text-zinc-400 text-xs">
+              Du bekommst in Kürze eine E-Mail von Supabase Auth. Bitte öffne sie und klicke auf <strong className="text-zinc-200">Confirm your mail</strong>.
+            </p>
+          </div>
+        ) : isLogin ? (
           <form action={loginAction} className="flex flex-col gap-4">
             <input
               name="email"
@@ -107,3 +114,4 @@ export default function AuthPage() {
     </div>
   );
 }
+

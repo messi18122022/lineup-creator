@@ -20,7 +20,7 @@ export async function login(
 }
 
 export async function register(
-  _state: { error: string } | undefined,
+  _state: { error: string; confirm?: boolean } | undefined,
   formData: FormData
 ) {
   const supabase = await createClient();
@@ -32,7 +32,7 @@ export async function register(
 
   if (error) return { error: error.message };
 
-  redirect("/");
+  return { error: "", confirm: true };
 }
 
 export async function logout() {
