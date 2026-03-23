@@ -62,8 +62,8 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
           <SidebarToggleIcon />
         </button>
       </div>
-      <main className="flex flex-1 items-center justify-center p-6">
-        <div className="h-full" style={{ aspectRatio: "68 / 105" }}>
+      <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
+        <div className="max-h-full max-w-full" style={{ aspectRatio: "68 / 105", height: "100%" }}>
           <Field
             formation={formation}
             playerNames={playerNames}
