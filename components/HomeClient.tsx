@@ -12,10 +12,20 @@ interface HomeClientProps {
   userEmail: string | null;
 }
 
+function SidebarToggleIcon() {
+  return (
+    <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="0.75" y="0.75" width="18.5" height="14.5" rx="3.25" stroke="currentColor" strokeWidth="1.5" />
+      <line x1="6.75" y1="1" x2="6.75" y2="15" stroke="currentColor" strokeWidth="1.5" />
+    </svg>
+  );
+}
+
 export default function HomeClient({ userEmail }: HomeClientProps) {
   const [mode, setMode] = useState<GameMode>("11v11");
   const [formation, setFormation] = useState<FormationKey>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   function handleModeChange(newMode: GameMode) {
     setMode(newMode);
@@ -32,13 +42,24 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
-      <Sidebar
-        mode={mode}
-        formation={formation}
-        onModeChange={handleModeChange}
-        onFormationChange={setFormation}
-        userEmail={userEmail}
-      />
+      <div className="relative flex-shrink-0 h-full">
+        {sidebarOpen && (
+          <Sidebar
+            mode={mode}
+            formation={formation}
+            onModeChange={handleModeChange}
+            onFormationChange={setFormation}
+            userEmail={userEmail}
+          />
+        )}
+        <button
+          onClick={() => setSidebarOpen((v) => !v)}
+          className="absolute top-4 -right-8 text-green-500 hover:text-green-400 transition-colors cursor-pointer"
+          title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          <SidebarToggleIcon />
+        </button>
+      </div>
       <main className="flex flex-1 items-center justify-center p-6">
         <div className="h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
