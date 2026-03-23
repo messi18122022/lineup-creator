@@ -16,7 +16,7 @@ export default function Field({ formation, playerNames, onNameChange }: FieldPro
   const count = positions.length;
 
   return (
-    <div className="relative h-full" style={{ aspectRatio: "68 / 105" }}>
+    <div className="relative w-full h-full">
       {/* Green pitch */}
       <div
         className="relative w-full h-full rounded-lg border-4 border-green-800 overflow-hidden"

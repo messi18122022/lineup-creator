@@ -25,7 +25,9 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
   const [mode, setMode] = useState<GameMode>("11v11");
   const [formation, setFormation] = useState<FormationKey>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(
+    () => typeof window !== "undefined" ? window.innerWidth >= 768 : true
+  );
 
   function handleModeChange(newMode: GameMode) {
     setMode(newMode);
@@ -60,8 +62,8 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
           <SidebarToggleIcon />
         </button>
       </div>
-      <main className="flex flex-1 items-center justify-center p-6">
-        <div className="h-full" style={{ aspectRatio: "68 / 105" }}>
+      <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
+        <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
             formation={formation}
             playerNames={playerNames}
