@@ -8,7 +8,7 @@ interface SidebarProps {
   formation: FormationKey;
   onModeChange: (mode: GameMode) => void;
   onFormationChange: (formation: FormationKey) => void;
-  userEmail: string;
+  userEmail: string | null;
 }
 
 export default function Sidebar({ mode, formation, onModeChange, onFormationChange, userEmail }: SidebarProps) {
@@ -20,7 +20,16 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
       <ModeCard value={mode} onChange={onModeChange} />
       <FormationCard mode={mode} value={formation} onChange={onFormationChange} />
       <div className="mt-auto">
-        <UserButton email={userEmail} />
+        {userEmail ? (
+          <UserButton email={userEmail} />
+        ) : (
+          <a
+            href="/auth"
+            className="block text-xs text-zinc-400 hover:text-zinc-200 transition-colors pt-2 border-t border-zinc-700"
+          >
+            Login / Register
+          </a>
+        )}
       </div>
     </aside>
   );

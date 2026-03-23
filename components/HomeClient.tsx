@@ -9,7 +9,7 @@ import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
 interface HomeClientProps {
-  userEmail: string;
+  userEmail: string | null;
 }
 
 export default function HomeClient({ userEmail }: HomeClientProps) {
