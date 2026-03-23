@@ -24,14 +24,14 @@ interface SidebarProps {
 export default function Sidebar({ mode, formation, onModeChange, onFormationChange, userEmail, onCollapse }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
-      <div className="flex items-center justify-between">
-        <h1 className="text-sm font-bold uppercase tracking-widest text-center flex-1">
+      <div className="flex items-center justify-between gap-2">
+        <h1 className="text-sm font-bold uppercase tracking-widest text-center flex-1 bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3">
           <span className="text-green-500">Lineup</span>
           <span className="text-zinc-200"> Creator</span>
         </h1>
         <button
           onClick={onCollapse}
-          className="text-green-500 hover:text-green-400 transition-colors cursor-pointer pl-2 border-l border-zinc-700"
+          className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
           title="Close sidebar"
         >
           <SidebarToggleIcon />
