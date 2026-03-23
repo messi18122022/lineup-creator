@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
 import { FormationKey, GameMode } from "@/types";
@@ -25,7 +25,11 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
   const [mode, setMode] = useState<GameMode>("11v11");
   const [formation, setFormation] = useState<FormationKey>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  useEffect(() => {
+    setSidebarOpen(window.innerWidth >= 768);
+  }, []);
 
   function handleModeChange(newMode: GameMode) {
     setMode(newMode);
