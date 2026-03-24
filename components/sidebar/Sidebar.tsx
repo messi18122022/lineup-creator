@@ -31,7 +31,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
               Sign in to Pro Account
             </a>
             <a
-              href="/auth"
+              href="/pro"
               className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
             >
               <span className="text-sm font-semibold text-white">Go Pro</span>
