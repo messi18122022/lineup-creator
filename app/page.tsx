@@ -7,5 +7,5 @@ export default async function HomePage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  return <HomeClientDynamic userEmail={user?.email ?? null} />;
+  return <HomeClientDynamic userEmail={user?.email ?? null} isPro={false} />;
 }
