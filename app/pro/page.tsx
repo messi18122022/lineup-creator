@@ -40,6 +40,20 @@ export default function ProPage() {
           </p>
         </div>
 
+        <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
+          <svg className="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 16 16" fill="none">
+            <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f59e0b" strokeWidth="1.5" strokeLinejoin="round"/>
+            <path d="M8 6V9" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="8" cy="11" r="0.75" fill="#f59e0b"/>
+          </svg>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Coming Soon</span>
+            <span className="text-xs text-amber-200/70 leading-relaxed">
+              These features are currently in development. You can already purchase Pro — your account will unlock them as they launch.
+            </span>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3">
           {features.map((f) => (
             <div
@@ -77,7 +91,7 @@ export default function ProPage() {
             </span>
           </div>
           <a
-            href="/auth"
+            href="/auth?mode=register"
             className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-sm font-semibold text-white"
           >
             Get Started

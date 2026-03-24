@@ -25,7 +25,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
         {!userEmail ? (
           <>
             <a
-              href="/auth"
+              href="/auth?mode=login"
               className="block w-full text-center text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-2"
             >
               Sign in to Pro Account
