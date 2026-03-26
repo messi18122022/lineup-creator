@@ -40,14 +40,14 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
           </>
         ) : isPro ? (
           <div className="flex items-center gap-2 pt-2 border-t border-zinc-700">
-            <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-white uppercase">{userEmail![0]}</span>
+            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-white uppercase">{userEmail![0]}</span>
             </div>
-            <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Pro</span>
+            <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">Pro</span>
             <form action={logout} className="ml-auto">
               <button
                 type="submit"
-                className="h-6 px-2 bg-red-700 hover:bg-red-600 transition-colors rounded text-xs font-semibold text-white"
+                className="h-8 px-3 bg-red-700 hover:bg-red-600 transition-colors rounded text-sm font-semibold text-white"
               >
                 Logout
               </button>
