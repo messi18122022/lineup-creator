@@ -47,7 +47,7 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
         ) : (
           <>
             <a
-              href="/api/checkout"
+              href="/pro"
               className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
             >
               <span className="text-sm font-semibold text-white">Upgrade to Pro</span>
