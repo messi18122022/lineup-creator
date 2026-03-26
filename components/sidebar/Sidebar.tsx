@@ -39,19 +39,17 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
             </a>
           </>
         ) : isPro ? (
-          <div className="flex flex-col gap-2 pt-2 border-t border-zinc-700">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
-                <span className="text-xs font-bold text-white uppercase">{userEmail![0]}</span>
-              </div>
-              <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Pro</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-zinc-700">
+            <div className="w-6 h-6 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-white uppercase">{userEmail![0]}</span>
             </div>
-            <form action={logout}>
+            <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Pro</span>
+            <form action={logout} className="ml-auto">
               <button
                 type="submit"
-                className="w-full bg-red-700 hover:bg-red-600 transition-colors rounded-lg px-4 py-3 text-center"
+                className="h-6 px-2 bg-red-700 hover:bg-red-600 transition-colors rounded text-xs font-semibold text-white"
               >
-                <span className="text-sm font-semibold text-white">Logout</span>
+                Logout
               </button>
             </form>
           </div>
