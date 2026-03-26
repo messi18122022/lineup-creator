@@ -10,6 +10,7 @@ const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
 interface HomeClientProps {
   userEmail: string | null;
+  isPro: boolean;
 }
 
 function SidebarToggleIcon() {
@@ -21,7 +22,7 @@ function SidebarToggleIcon() {
   );
 }
 
-export default function HomeClient({ userEmail }: HomeClientProps) {
+export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [mode, setMode] = useState<GameMode>("11v11");
   const [formation, setFormation] = useState<FormationKey>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
@@ -67,6 +68,7 @@ export default function HomeClient({ userEmail }: HomeClientProps) {
             onModeChange={handleModeChange}
             onFormationChange={setFormation}
             userEmail={userEmail}
+            isPro={isPro}
           />
         </div>
         <div className="absolute top-4 -right-8">
