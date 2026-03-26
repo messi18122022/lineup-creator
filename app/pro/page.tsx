@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/server";
+
 const features = [
   {
     title: "Custom Modes & Formations",
@@ -26,7 +28,15 @@ const features = [
   },
 ];
 
-export default function ProPage() {
+export default async function ProPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const ctaHref = user ? "/api/checkout" : "/auth?mode=register";
+  const ctaLabel = user ? "Upgrade to Pro" : "Get Started";
+
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md flex flex-col gap-8">
@@ -91,10 +101,10 @@ export default function ProPage() {
             </span>
           </div>
           <a
-            href="/auth?mode=register"
+            href={ctaHref}
             className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-sm font-semibold text-white"
           >
-            Get Started
+            {ctaLabel}
           </a>
           <a
             href="/"
