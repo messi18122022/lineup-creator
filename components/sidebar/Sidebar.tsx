@@ -1,6 +1,7 @@
 import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
 import UserButton from "./UserButton";
+import { logout } from "@/app/actions/auth";
 import { FormationKey, GameMode } from "@/types";
 
 interface SidebarProps {
@@ -38,11 +39,19 @@ export default function Sidebar({ mode, formation, onModeChange, onFormationChan
             </a>
           </>
         ) : isPro ? (
-          <div className="flex items-center justify-between pt-2 border-t border-zinc-700">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-zinc-400 truncate">{userEmail}</span>
-              <span className="text-xs font-semibold text-green-400 uppercase tracking-wider">Pro</span>
+          <div className="flex items-center gap-2 pt-2 border-t border-zinc-700">
+            <div className="w-8 h-8 rounded-full bg-green-600 flex items-center justify-center flex-shrink-0">
+              <span className="text-sm font-bold text-white uppercase">{userEmail![0]}</span>
             </div>
+            <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">Pro</span>
+            <form action={logout} className="ml-auto">
+              <button
+                type="submit"
+                className="h-8 px-3 bg-red-700 hover:bg-red-600 transition-colors rounded text-sm font-semibold text-white"
+              >
+                Logout
+              </button>
+            </form>
           </div>
         ) : (
           <>
