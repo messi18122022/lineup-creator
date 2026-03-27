@@ -48,14 +48,14 @@ export default function ThreeDotMenu({ items }: { items: MenuItem[] }) {
       {open && typeof document !== "undefined" && createPortal(
         <div
           style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 min-w-[110px]"
+          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 w-max"
           onMouseDown={e => e.stopPropagation()}
         >
           {items.map(item => (
             <button
               key={item.label}
               onClick={(e) => { e.stopPropagation(); item.onClick(); setOpen(false); }}
-              className={`w-full px-3 py-1.5 text-left text-xs font-medium transition-colors hover:bg-zinc-700 ${
+              className={`w-full px-3 py-1.5 text-left text-xs font-medium whitespace-nowrap transition-colors hover:bg-zinc-700 ${
                 item.danger ? "text-red-400 hover:text-red-300" : "text-zinc-200"
               }`}
             >
