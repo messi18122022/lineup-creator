@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 interface MenuItem {
   label: string;
@@ -9,29 +10,33 @@ interface MenuItem {
 
 export default function ThreeDotMenu({ items }: { items: MenuItem[] }) {
   const [open, setOpen] = useState(false);
-  const [openUp, setOpenUp] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const [pos, setPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    function handleOutside(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    if (open) document.addEventListener("mousedown", handleOutside);
-    return () => document.removeEventListener("mousedown", handleOutside);
+    if (!open) return;
+    function close() { setOpen(false); }
+    document.addEventListener("mousedown", close);
+    document.addEventListener("scroll", close, true);
+    return () => {
+      document.removeEventListener("mousedown", close);
+      document.removeEventListener("scroll", close, true);
+    };
   }, [open]);
 
   function handleToggle(e: React.MouseEvent) {
     e.stopPropagation();
-    if (!open && btnRef.current) {
+    if (btnRef.current) {
       const rect = btnRef.current.getBoundingClientRect();
-      setOpenUp(window.innerHeight - rect.bottom < 120);
+      const spaceBelow = window.innerHeight - rect.bottom;
+      const top = spaceBelow >= 120 ? rect.bottom + 4 : rect.top - 4 - Math.min(items.length * 32, 120);
+      setPos({ top, right: window.innerWidth - rect.right });
     }
     setOpen(v => !v);
   }
 
   return (
-    <div ref={ref} className="relative flex-shrink-0">
+    <div className="relative flex-shrink-0">
       <button
         ref={btnRef}
         onClick={handleToggle}
@@ -40,8 +45,12 @@ export default function ThreeDotMenu({ items }: { items: MenuItem[] }) {
       >
         ···
       </button>
-      {open && (
-        <div className={`absolute right-0 bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl z-20 py-1 min-w-[110px] ${openUp ? "bottom-full mb-1" : "top-full mt-1"}`}>
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 min-w-[110px]"
+          onMouseDown={e => e.stopPropagation()}
+        >
           {items.map(item => (
             <button
               key={item.label}
@@ -53,7 +62,8 @@ export default function ThreeDotMenu({ items }: { items: MenuItem[] }) {
               {item.label}
             </button>
           ))}
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
