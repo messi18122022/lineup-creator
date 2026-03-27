@@ -6,13 +6,14 @@ import { FORMATIONS } from "@/lib/formations";
 import { FormationKey } from "@/types";
 
 interface FieldProps {
-  formation: FormationKey;
+  formation: string;
+  positions?: [number, number][];
   playerNames: string[];
   onNameChange: (index: number, name: string) => void;
 }
 
-export default function Field({ formation, playerNames, onNameChange }: FieldProps) {
-  const positions = FORMATIONS[formation].positions;
+export default function Field({ formation, positions: customPositions, playerNames, onNameChange }: FieldProps) {
+  const positions = customPositions ?? (FORMATIONS[formation as FormationKey]?.positions ?? []);
   const count = positions.length;
 
   return (

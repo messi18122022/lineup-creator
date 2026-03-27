@@ -22,3 +22,17 @@ export type FormationKey =
   // 5+1
   | "2-2-1"
   | "2-1-2";
+
+export interface CustomFormation {
+  id: string;
+  name: string;
+  positions: [number, number][];
+  hasGoalkeeper: boolean;
+}
+
+export interface CustomMode {
+  id: string;
+  name: string;
+  playerCount: number;
+  formations: CustomFormation[];
+}
