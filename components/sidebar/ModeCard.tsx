@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import AccordionCard, { useAccordionClose } from "@/components/ui/AccordionCard";
 import ThreeDotMenu from "@/components/ui/ThreeDotMenu";
 
@@ -36,6 +36,7 @@ function ModeButton({
 }) {
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(item.name);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   function commitRename() {
     if (draft.trim()) onRename(item.id, draft.trim());
@@ -43,7 +44,7 @@ function ModeButton({
   }
 
   return (
-    <div className={`flex items-center w-full rounded-lg transition-colors
+    <div ref={rowRef} className={`flex items-center w-full rounded-lg transition-colors
       ${isSelected ? "bg-green-600" : "bg-zinc-800 border border-zinc-600 hover:bg-zinc-700"}`}>
       {renaming ? (
         <input
@@ -68,7 +69,7 @@ function ModeButton({
       )}
       {!renaming && (
         <div className="pr-2">
-          <ThreeDotMenu items={[
+          <ThreeDotMenu anchorRef={rowRef} items={[
             { label: "Rename", onClick: () => { setRenaming(true); setDraft(item.name); } },
             { label: "Delete", onClick: () => onDelete(item.id), danger: true },
           ]} />
