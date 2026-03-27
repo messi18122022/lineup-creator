@@ -1,10 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
-import { FormationKey, GameMode } from "@/types";
+import CreateModeDialog from "@/components/modals/CreateModeDialog";
+import { GameMode, CustomMode } from "@/types";
 import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
+import { loadCustomModes, saveCustomModes } from "@/lib/customModes";
 
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
@@ -23,14 +25,21 @@ function SidebarToggleIcon() {
 }
 
 export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
-  const [mode, setMode] = useState<GameMode>("11v11");
-  const [formation, setFormation] = useState<FormationKey>("4-3-3");
+  const [mode, setMode] = useState<string>("11v11");
+  const [formation, setFormation] = useState<string>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
+  const [customModes, setCustomModes] = useState<CustomMode[]>([]);
+  const [showCreateMode, setShowCreateMode] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(
-    () => typeof window !== "undefined" ? window.innerWidth >= 768 : true
+    () => (typeof window !== "undefined" ? window.innerWidth >= 768 : true)
   );
   const [hintVisible, setHintVisible] = useState(true);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Load custom modes from localStorage on mount
+  useEffect(() => {
+    setCustomModes(loadCustomModes());
+  }, []);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
@@ -45,9 +54,14 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
     setSidebarOpen((v) => !v);
   }
 
-  function handleModeChange(newMode: GameMode) {
+  function handleModeChange(newMode: string) {
     setMode(newMode);
-    setFormation(DEFAULT_FORMATION_FOR_MODE[newMode]);
+    const cm = customModes.find((m) => m.id === newMode);
+    if (cm) {
+      setFormation(cm.formations[0]?.id ?? "");
+    } else {
+      setFormation(DEFAULT_FORMATION_FOR_MODE[newMode as GameMode]);
+    }
   }
 
   function handleNameChange(index: number, name: string) {
@@ -58,10 +72,30 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
     });
   }
 
+  function handleCreateMode(newMode: CustomMode) {
+    const updated = [...customModes, newMode];
+    setCustomModes(updated);
+    saveCustomModes(updated);
+    setShowCreateMode(false);
+    // Immediately select the new mode and its first formation
+    setMode(newMode.id);
+    setFormation(newMode.formations[0].id);
+  }
+
+  // Compute custom positions for Field when a custom mode/formation is selected
+  const customPositions = useMemo(() => {
+    const cm = customModes.find((m) => m.id === mode);
+    if (!cm) return undefined;
+    const cf = cm.formations.find((f) => f.id === formation);
+    return cf?.positions;
+  }, [mode, formation, customModes]);
+
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
       <div className="relative h-full flex-shrink-0">
-        <div className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}>
+        <div
+          className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}
+        >
           <Sidebar
             mode={mode}
             formation={formation}
@@ -69,6 +103,8 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             onFormationChange={setFormation}
             userEmail={userEmail}
             isPro={isPro}
+            customModes={customModes}
+            onCreateMode={() => setShowCreateMode(true)}
           />
         </div>
         <div className="absolute top-4 -right-8">
@@ -92,9 +128,13 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             formation={formation}
             playerNames={playerNames}
             onNameChange={handleNameChange}
+            customPositions={customPositions}
           />
         </div>
       </main>
+      {showCreateMode && (
+        <CreateModeDialog onSave={handleCreateMode} onClose={() => setShowCreateMode(false)} />
+      )}
     </div>
   );
 }

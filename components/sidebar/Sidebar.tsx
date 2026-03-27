@@ -2,26 +2,48 @@ import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
 import UserButton from "./UserButton";
 import { logout } from "@/app/actions/auth";
-import { FormationKey, GameMode } from "@/types";
+import { CustomMode } from "@/types";
 
 interface SidebarProps {
-  mode: GameMode;
-  formation: FormationKey;
-  onModeChange: (mode: GameMode) => void;
-  onFormationChange: (formation: FormationKey) => void;
+  mode: string;
+  formation: string;
+  onModeChange: (mode: string) => void;
+  onFormationChange: (formation: string) => void;
   userEmail: string | null;
   isPro: boolean;
+  customModes: CustomMode[];
+  onCreateMode: () => void;
 }
 
-export default function Sidebar({ mode, formation, onModeChange, onFormationChange, userEmail, isPro }: SidebarProps) {
+export default function Sidebar({
+  mode,
+  formation,
+  onModeChange,
+  onFormationChange,
+  userEmail,
+  isPro,
+  customModes,
+  onCreateMode,
+}: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
       <h1 className="text-sm font-bold uppercase tracking-widest text-center bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3">
         <span className="text-green-500">Lineup</span>
         <span className="text-zinc-200"> Creator</span>
       </h1>
-      <ModeCard value={mode} onChange={onModeChange} />
-      <FormationCard mode={mode} value={formation} onChange={onFormationChange} />
+      <ModeCard
+        value={mode}
+        onChange={onModeChange}
+        isPro={isPro}
+        customModes={customModes}
+        onCreateMode={onCreateMode}
+      />
+      <FormationCard
+        mode={mode}
+        value={formation}
+        onChange={onFormationChange}
+        customModes={customModes}
+      />
       <div className="mt-auto flex flex-col gap-2">
         {!userEmail ? (
           <>
