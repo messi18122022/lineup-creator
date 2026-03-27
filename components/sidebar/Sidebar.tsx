@@ -2,7 +2,7 @@ import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
 import UserButton from "./UserButton";
 import { logout } from "@/app/actions/auth";
-import { CustomMode } from "@/types";
+import { CustomMode, CustomFormation } from "@/types";
 
 interface SidebarProps {
   mode: string;
@@ -13,6 +13,8 @@ interface SidebarProps {
   isPro: boolean;
   customModes: CustomMode[];
   onCreateMode: () => void;
+  extraFormations: Record<string, CustomFormation[]>;
+  onAddFormation: () => void;
 }
 
 export default function Sidebar({
@@ -24,6 +26,8 @@ export default function Sidebar({
   isPro,
   customModes,
   onCreateMode,
+  extraFormations,
+  onAddFormation,
 }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
@@ -43,6 +47,9 @@ export default function Sidebar({
         value={formation}
         onChange={onFormationChange}
         customModes={customModes}
+        isPro={isPro}
+        onAddFormation={onAddFormation}
+        extraFormations={extraFormations}
       />
       <div className="mt-auto flex flex-col gap-2">
         {!userEmail ? (

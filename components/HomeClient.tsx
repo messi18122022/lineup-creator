@@ -4,9 +4,16 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
 import CreateModeDialog from "@/components/modals/CreateModeDialog";
-import { GameMode, CustomMode } from "@/types";
+import AddFormationDialog from "@/components/modals/AddFormationDialog";
+import { GameMode, CustomMode, CustomFormation } from "@/types";
 import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
-import { loadCustomModes, saveCustomModes } from "@/lib/customModes";
+import {
+  loadCustomModes,
+  saveCustomModes,
+  loadExtraFormations,
+  saveExtraFormations,
+  PLAYER_COUNT_FOR_BUILTIN_MODE,
+} from "@/lib/customModes";
 
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
@@ -29,16 +36,19 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [formation, setFormation] = useState<string>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
   const [customModes, setCustomModes] = useState<CustomMode[]>([]);
+  const [extraFormations, setExtraFormations] = useState<Record<string, CustomFormation[]>>({});
   const [showCreateMode, setShowCreateMode] = useState(false);
+  const [showAddFormation, setShowAddFormation] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(
     () => (typeof window !== "undefined" ? window.innerWidth >= 768 : true)
   );
   const [hintVisible, setHintVisible] = useState(true);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load custom modes from localStorage on mount
+  // Load custom modes and extra formations from localStorage on mount
   useEffect(() => {
     setCustomModes(loadCustomModes());
+    setExtraFormations(loadExtraFormations());
   }, []);
 
   useEffect(() => {
@@ -58,7 +68,8 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
     setMode(newMode);
     const cm = customModes.find((m) => m.id === newMode);
     if (cm) {
-      setFormation(cm.formations[0]?.id ?? "");
+      const firstFormation = [...cm.formations, ...(extraFormations[newMode] ?? [])][0];
+      setFormation(firstFormation?.id ?? "");
     } else {
       setFormation(DEFAULT_FORMATION_FOR_MODE[newMode as GameMode]);
     }
@@ -82,13 +93,47 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
     setFormation(newMode.formations[0].id);
   }
 
+  function handleAddFormation(modeId: string, newFormation: CustomFormation) {
+    const cm = customModes.find((m) => m.id === modeId);
+    if (cm) {
+      // Custom mode: add to customModes formations
+      const updated = customModes.map((m) =>
+        m.id === modeId ? { ...m, formations: [...m.formations, newFormation] } : m
+      );
+      setCustomModes(updated);
+      saveCustomModes(updated);
+    } else {
+      // Built-in mode: add to extraFormations
+      const updated = {
+        ...extraFormations,
+        [modeId]: [...(extraFormations[modeId] ?? []), newFormation],
+      };
+      setExtraFormations(updated);
+      saveExtraFormations(updated);
+    }
+    setShowAddFormation(false);
+    // Immediately select the new formation
+    setFormation(newFormation.id);
+  }
+
   // Compute custom positions for Field when a custom mode/formation is selected
   const customPositions = useMemo(() => {
     const cm = customModes.find((m) => m.id === mode);
-    if (!cm) return undefined;
-    const cf = cm.formations.find((f) => f.id === formation);
-    return cf?.positions;
-  }, [mode, formation, customModes]);
+    if (cm) {
+      const cf = [...cm.formations, ...(extraFormations[mode] ?? [])].find((f) => f.id === formation);
+      return cf?.positions;
+    }
+    // Check extra formations for built-in modes
+    const extra = (extraFormations[mode] ?? []).find((f) => f.id === formation);
+    return extra?.positions;
+  }, [mode, formation, customModes, extraFormations]);
+
+  // Determine player count for AddFormationDialog
+  const addFormationPlayerCount = (() => {
+    const cm = customModes.find((m) => m.id === mode);
+    if (cm) return cm.playerCount;
+    return PLAYER_COUNT_FOR_BUILTIN_MODE[mode as GameMode] ?? 11;
+  })();
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
@@ -105,6 +150,8 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             isPro={isPro}
             customModes={customModes}
             onCreateMode={() => setShowCreateMode(true)}
+            extraFormations={extraFormations}
+            onAddFormation={() => setShowAddFormation(true)}
           />
         </div>
         <div className="absolute top-4 -right-8">
@@ -134,6 +181,13 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
       </main>
       {showCreateMode && (
         <CreateModeDialog onSave={handleCreateMode} onClose={() => setShowCreateMode(false)} />
+      )}
+      {showAddFormation && (
+        <AddFormationDialog
+          playerCount={addFormationPlayerCount}
+          onSave={(f) => handleAddFormation(mode, f)}
+          onClose={() => setShowAddFormation(false)}
+        />
       )}
     </div>
   );

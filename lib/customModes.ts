@@ -1,6 +1,7 @@
-import { CustomMode } from "@/types";
+import { CustomMode, CustomFormation, GameMode } from "@/types";
 
 const STORAGE_KEY = "lineup_custom_modes";
+const EXTRA_FORMATIONS_KEY = "lineup_extra_formations";
 
 export function loadCustomModes(): CustomMode[] {
   if (typeof window === "undefined") return [];
@@ -16,6 +17,27 @@ export function saveCustomModes(modes: CustomMode[]): void {
   if (typeof window === "undefined") return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(modes));
 }
+
+export function loadExtraFormations(): Record<string, CustomFormation[]> {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = localStorage.getItem(EXTRA_FORMATIONS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveExtraFormations(data: Record<string, CustomFormation[]>): void {
+  if (typeof window === "undefined") return;
+  localStorage.setItem(EXTRA_FORMATIONS_KEY, JSON.stringify(data));
+}
+
+export const PLAYER_COUNT_FOR_BUILTIN_MODE: Record<GameMode, number> = {
+  "11v11": 11,
+  "4+1": 5,
+  "5+1": 6,
+};
 
 export function generateDefaultPositions(count: number): [number, number][] {
   const positions: [number, number][] = [];

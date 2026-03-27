@@ -53,7 +53,7 @@ function ModeOptions({ value, onChange, isPro, customModes, onCreateMode }: Mode
       {!isPro ? (
         <div className="relative w-full rounded-lg px-3 py-2 text-sm font-semibold bg-zinc-800 text-zinc-500 border border-zinc-600 text-left cursor-not-allowed flex items-center justify-between">
           <span>+ Custom Mode</span>
-          <span className="text-[0.6rem] font-bold uppercase tracking-wider bg-amber-500 text-black px-1.5 py-0.5 rounded">
+          <span className="text-[0.6rem] font-bold uppercase tracking-wider bg-green-600 text-white px-1.5 py-0.5 rounded">
             Pro
           </span>
         </div>
