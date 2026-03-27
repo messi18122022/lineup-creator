@@ -1,4 +1,5 @@
 "use client";
+
 import FieldLines from "./FieldLines";
 import Player from "./Player";
 import { FORMATIONS } from "@/lib/formations";
@@ -6,14 +7,13 @@ import { FormationKey } from "@/types";
 
 interface FieldProps {
   formation: string;
+  positions?: [number, number][];
   playerNames: string[];
   onNameChange: (index: number, name: string) => void;
-  customPositions?: [number, number][];
 }
 
-export default function Field({ formation, playerNames, onNameChange, customPositions }: FieldProps) {
-  const positions =
-    customPositions ?? FORMATIONS[formation as FormationKey]?.positions ?? [];
+export default function Field({ formation, positions: customPositions, playerNames, onNameChange }: FieldProps) {
+  const positions = customPositions ?? (FORMATIONS[formation as FormationKey]?.positions ?? []);
   const count = positions.length;
 
   return (

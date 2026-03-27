@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
-import CreateModeDialog from "@/components/modals/CreateModeDialog";
-import AddFormationDialog from "@/components/modals/AddFormationDialog";
-import { GameMode, CustomMode, CustomFormation } from "@/types";
-import { DEFAULT_FORMATION_FOR_MODE } from "@/lib/formations";
+import { FormationKey, GameMode, CustomFormation, CustomMode } from "@/types";
+import { DEFAULT_FORMATION_FOR_MODE, FORMATIONS_BY_MODE, FORMATIONS } from "@/lib/formations";
 import {
   loadCustomModes,
   saveCustomModes,
   loadExtraFormations,
   saveExtraFormations,
-  PLAYER_COUNT_FOR_BUILTIN_MODE,
 } from "@/lib/customModes";
+import AddFormationDialog from "@/components/modals/AddFormationDialog";
+import CreateModeDialog from "@/components/modals/CreateModeDialog";
+import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
 
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
@@ -35,17 +35,23 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [mode, setMode] = useState<string>("11v11");
   const [formation, setFormation] = useState<string>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
-  const [customModes, setCustomModes] = useState<CustomMode[]>([]);
-  const [extraFormations, setExtraFormations] = useState<Record<string, CustomFormation[]>>({});
-  const [showCreateMode, setShowCreateMode] = useState(false);
-  const [showAddFormation, setShowAddFormation] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(
-    () => (typeof window !== "undefined" ? window.innerWidth >= 768 : true)
+    () => typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
   const [hintVisible, setHintVisible] = useState(true);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load custom modes and extra formations from localStorage on mount
+  // Custom modes & formations state
+  const [customModes, setCustomModes] = useState<CustomMode[]>([]);
+  const [extraFormations, setExtraFormations] = useState<Record<string, CustomFormation[]>>({});
+
+  // Dialog state
+  const [showCreateMode, setShowCreateMode] = useState(false);
+  const [showAddFormation, setShowAddFormation] = useState(false);
+  const [editFormationId, setEditFormationId] = useState<string | null>(null);
+  const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
+
+  // Load persisted data on mount
   useEffect(() => {
     setCustomModes(loadCustomModes());
     setExtraFormations(loadExtraFormations());
@@ -66,12 +72,15 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
 
   function handleModeChange(newMode: string) {
     setMode(newMode);
-    const cm = customModes.find((m) => m.id === newMode);
-    if (cm) {
-      const firstFormation = [...cm.formations, ...(extraFormations[newMode] ?? [])][0];
-      setFormation(firstFormation?.id ?? "");
+    // Set default formation for the new mode
+    const builtInDefault = DEFAULT_FORMATION_FOR_MODE[newMode as GameMode];
+    if (builtInDefault) {
+      setFormation(builtInDefault);
     } else {
-      setFormation(DEFAULT_FORMATION_FOR_MODE[newMode as GameMode]);
+      // Custom mode — pick first formation
+      const cm = customModes.find(m => m.id === newMode);
+      const firstFormation = cm?.formations[0] ?? (extraFormations[newMode] ?? [])[0];
+      setFormation(firstFormation?.id ?? "");
     }
   }
 
@@ -83,64 +92,166 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
     });
   }
 
+  function handleOpenAddFormation() {
+    // Determine player count for the current mode
+    const cm = customModes.find(m => m.id === mode);
+    const builtInFormations = FORMATIONS_BY_MODE[mode as GameMode];
+    let playerCount = 11;
+    if (cm) {
+      playerCount = cm.playerCount;
+    } else if (builtInFormations) {
+      const firstKey = builtInFormations[0];
+      playerCount = FORMATIONS[firstKey]?.positions.length ?? 11;
+    }
+    setAddFormationPlayerCount(playerCount);
+    setEditFormationId(null);
+    setShowAddFormation(true);
+  }
+
+  // ----- Custom mode handlers -----
+
   function handleCreateMode(newMode: CustomMode) {
     const updated = [...customModes, newMode];
     setCustomModes(updated);
     saveCustomModes(updated);
     setShowCreateMode(false);
-    // Immediately select the new mode and its first formation
+    // Switch to new mode
     setMode(newMode.id);
-    setFormation(newMode.formations[0].id);
+    const firstFormation = newMode.formations[0];
+    setFormation(firstFormation?.id ?? "");
   }
 
-  function handleAddFormation(modeId: string, newFormation: CustomFormation) {
-    const cm = customModes.find((m) => m.id === modeId);
-    if (cm) {
-      // Custom mode: add to customModes formations
-      const updated = customModes.map((m) =>
-        m.id === modeId ? { ...m, formations: [...m.formations, newFormation] } : m
-      );
-      setCustomModes(updated);
-      saveCustomModes(updated);
+  function handleRenameMode(id: string, newName: string) {
+    const updated = customModes.map(m => m.id === id ? { ...m, name: newName } : m);
+    setCustomModes(updated);
+    saveCustomModes(updated);
+  }
+
+  function handleDeleteMode(id: string) {
+    const updated = customModes.filter(m => m.id !== id);
+    setCustomModes(updated);
+    saveCustomModes(updated);
+    if (mode === id) {
+      setMode("11v11");
+      setFormation(DEFAULT_FORMATION_FOR_MODE["11v11"]);
+    }
+  }
+
+  // ----- Formation handlers -----
+
+  function handleAddFormation(modeId: string, f: CustomFormation) {
+    const updated = {
+      ...extraFormations,
+      [modeId]: [...(extraFormations[modeId] ?? []), f],
+    };
+    setExtraFormations(updated);
+    saveExtraFormations(updated);
+    setFormation(f.id);
+    setShowAddFormation(false);
+  }
+
+  function handleRenameFormation(formationId: string, newName: string) {
+    // Check extraFormations first
+    const updatedExtra = Object.fromEntries(
+      Object.entries(extraFormations).map(([modeId, formations]) => [
+        modeId,
+        formations.map(f => f.id === formationId ? { ...f, name: newName } : f),
+      ])
+    );
+    const extraChanged = JSON.stringify(updatedExtra) !== JSON.stringify(extraFormations);
+    if (extraChanged) {
+      setExtraFormations(updatedExtra);
+      saveExtraFormations(updatedExtra);
+      return;
+    }
+    // Check custom modes
+    const updatedModes = customModes.map(m => ({
+      ...m,
+      formations: m.formations.map(f => f.id === formationId ? { ...f, name: newName } : f),
+    }));
+    setCustomModes(updatedModes);
+    saveCustomModes(updatedModes);
+  }
+
+  function handleDeleteFormation(formationId: string) {
+    let found = false;
+    const updatedExtra = Object.fromEntries(
+      Object.entries(extraFormations).map(([modeId, formations]) => {
+        const filtered = formations.filter(f => f.id !== formationId);
+        if (filtered.length !== formations.length) found = true;
+        return [modeId, filtered];
+      })
+    );
+    if (found) {
+      setExtraFormations(updatedExtra);
+      saveExtraFormations(updatedExtra);
     } else {
-      // Built-in mode: add to extraFormations
-      const updated = {
-        ...extraFormations,
-        [modeId]: [...(extraFormations[modeId] ?? []), newFormation],
-      };
-      setExtraFormations(updated);
-      saveExtraFormations(updated);
+      const updatedModes = customModes.map(m => ({
+        ...m,
+        formations: m.formations.filter(f => f.id !== formationId),
+      }));
+      setCustomModes(updatedModes);
+      saveCustomModes(updatedModes);
+    }
+    if (formation === formationId) {
+      const cm = customModes.find(m => m.id === mode);
+      if (cm) {
+        const remaining = [...cm.formations, ...(extraFormations[mode] ?? [])].filter(
+          f => f.id !== formationId
+        );
+        setFormation(remaining[0]?.id ?? "");
+      } else {
+        setFormation(DEFAULT_FORMATION_FOR_MODE[mode as GameMode] ?? "4-3-3");
+      }
+    }
+  }
+
+  function handleEditFormation(formationId: string) {
+    setEditFormationId(formationId);
+    setShowAddFormation(true);
+  }
+
+  function handleSaveEditedFormation(updated: CustomFormation) {
+    let found = false;
+    const updatedExtra = Object.fromEntries(
+      Object.entries(extraFormations).map(([modeId, formations]) => {
+        const mapped = formations.map(f => f.id === updated.id ? updated : f);
+        if (JSON.stringify(mapped) !== JSON.stringify(formations)) found = true;
+        return [modeId, mapped];
+      })
+    );
+    if (found) {
+      setExtraFormations(updatedExtra);
+      saveExtraFormations(updatedExtra);
+    } else {
+      const updatedModes = customModes.map(m => ({
+        ...m,
+        formations: m.formations.map(f => f.id === updated.id ? updated : f),
+      }));
+      setCustomModes(updatedModes);
+      saveCustomModes(updatedModes);
     }
     setShowAddFormation(false);
-    // Immediately select the new formation
-    setFormation(newFormation.id);
+    setEditFormationId(null);
   }
 
-  // Compute custom positions for Field when a custom mode/formation is selected
-  const customPositions = useMemo(() => {
-    const cm = customModes.find((m) => m.id === mode);
+  // Determine field positions to render
+  function getCurrentPositions(): [number, number][] | undefined {
+    const cm = customModes.find(m => m.id === mode);
     if (cm) {
-      const cf = [...cm.formations, ...(extraFormations[mode] ?? [])].find((f) => f.id === formation);
+      const cf = [...cm.formations, ...(extraFormations[mode] ?? [])].find(f => f.id === formation);
       return cf?.positions;
     }
-    // Check extra formations for built-in modes
-    const extra = (extraFormations[mode] ?? []).find((f) => f.id === formation);
+    const extra = (extraFormations[mode] ?? []).find(f => f.id === formation);
     return extra?.positions;
-  }, [mode, formation, customModes, extraFormations]);
+  }
 
-  // Determine player count for AddFormationDialog
-  const addFormationPlayerCount = (() => {
-    const cm = customModes.find((m) => m.id === mode);
-    if (cm) return cm.playerCount;
-    return PLAYER_COUNT_FOR_BUILTIN_MODE[mode as GameMode] ?? 11;
-  })();
+  const currentPositions = getCurrentPositions();
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
       <div className="relative h-full flex-shrink-0">
-        <div
-          className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}
-        >
+        <div className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}>
           <Sidebar
             mode={mode}
             formation={formation}
@@ -149,9 +260,14 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             userEmail={userEmail}
             isPro={isPro}
             customModes={customModes}
-            onCreateMode={() => setShowCreateMode(true)}
             extraFormations={extraFormations}
-            onAddFormation={() => setShowAddFormation(true)}
+            onCreateMode={() => setShowCreateMode(true)}
+            onAddFormation={handleOpenAddFormation}
+            onRenameMode={handleRenameMode}
+            onDeleteMode={handleDeleteMode}
+            onRenameFormation={handleRenameFormation}
+            onDeleteFormation={handleDeleteFormation}
+            onEditFormation={handleEditFormation}
           />
         </div>
         <div className="absolute top-4 -right-8">
@@ -173,22 +289,53 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
         <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
             formation={formation}
+            positions={currentPositions}
             playerNames={playerNames}
             onNameChange={handleNameChange}
-            customPositions={customPositions}
           />
         </div>
       </main>
+
+      {/* Dialogs */}
       {showCreateMode && (
-        <CreateModeDialog onSave={handleCreateMode} onClose={() => setShowCreateMode(false)} />
-      )}
-      {showAddFormation && (
-        <AddFormationDialog
-          playerCount={addFormationPlayerCount}
-          onSave={(f) => handleAddFormation(mode, f)}
-          onClose={() => setShowAddFormation(false)}
+        <CreateModeDialog
+          onSave={handleCreateMode}
+          onClose={() => setShowCreateMode(false)}
         />
       )}
+
+      {showAddFormation && (() => {
+        if (editFormationId) {
+          const cm = customModes.find(m => m.id === mode);
+          let editData: CustomFormation | undefined;
+          if (cm) {
+            editData = [...cm.formations, ...(extraFormations[mode] ?? [])].find(f => f.id === editFormationId);
+          } else {
+            editData = (extraFormations[mode] ?? []).find(f => f.id === editFormationId);
+          }
+          if (editData) {
+            return (
+              <FormationBuilderSheet
+                playerCount={addFormationPlayerCount}
+                initialPositions={editData.positions}
+                initialHasGoalkeeper={editData.hasGoalkeeper}
+                initialFormationName={editData.name}
+                editingId={editData.id}
+                onSave={handleSaveEditedFormation}
+                onBack={() => { setShowAddFormation(false); setEditFormationId(null); }}
+                backLabel="← Cancel"
+              />
+            );
+          }
+        }
+        return (
+          <AddFormationDialog
+            playerCount={addFormationPlayerCount}
+            onSave={f => handleAddFormation(mode, f)}
+            onClose={() => setShowAddFormation(false)}
+          />
+        );
+      })()}
     </div>
   );
 }

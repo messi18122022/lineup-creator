@@ -2,7 +2,7 @@ import ModeCard from "./ModeCard";
 import FormationCard from "./FormationCard";
 import UserButton from "./UserButton";
 import { logout } from "@/app/actions/auth";
-import { CustomMode, CustomFormation } from "@/types";
+import { CustomFormation, CustomMode } from "@/types";
 
 interface SidebarProps {
   mode: string;
@@ -12,9 +12,14 @@ interface SidebarProps {
   userEmail: string | null;
   isPro: boolean;
   customModes: CustomMode[];
-  onCreateMode: () => void;
   extraFormations: Record<string, CustomFormation[]>;
+  onCreateMode: () => void;
   onAddFormation: () => void;
+  onRenameMode: (id: string, name: string) => void;
+  onDeleteMode: (id: string) => void;
+  onRenameFormation: (id: string, name: string) => void;
+  onDeleteFormation: (id: string) => void;
+  onEditFormation: (id: string) => void;
 }
 
 export default function Sidebar({
@@ -25,9 +30,14 @@ export default function Sidebar({
   userEmail,
   isPro,
   customModes,
-  onCreateMode,
   extraFormations,
+  onCreateMode,
   onAddFormation,
+  onRenameMode,
+  onDeleteMode,
+  onRenameFormation,
+  onDeleteFormation,
+  onEditFormation,
 }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
@@ -41,15 +51,20 @@ export default function Sidebar({
         isPro={isPro}
         customModes={customModes}
         onCreateMode={onCreateMode}
+        onRenameMode={onRenameMode}
+        onDeleteMode={onDeleteMode}
       />
       <FormationCard
         mode={mode}
         value={formation}
         onChange={onFormationChange}
-        customModes={customModes}
         isPro={isPro}
-        onAddFormation={onAddFormation}
+        customModes={customModes}
         extraFormations={extraFormations}
+        onAddFormation={onAddFormation}
+        onRenameFormation={onRenameFormation}
+        onDeleteFormation={onDeleteFormation}
+        onEditFormation={onEditFormation}
       />
       <div className="mt-auto flex flex-col gap-2">
         {!userEmail ? (

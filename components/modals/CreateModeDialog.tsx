@@ -1,7 +1,8 @@
 "use client";
-import { useState, useEffect } from "react";
-import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
-import { CustomMode, CustomFormation } from "@/types";
+
+import { useState } from "react";
+import FormationBuilderSheet from "./FormationBuilderSheet";
+import { CustomFormation, CustomMode } from "@/types";
 
 interface CreateModeDialogProps {
   onSave: (mode: CustomMode) => void;
@@ -10,108 +11,81 @@ interface CreateModeDialogProps {
 
 export default function CreateModeDialog({ onSave, onClose }: CreateModeDialogProps) {
   const [step, setStep] = useState<1 | 2>(1);
-  const [playerCount, setPlayerCount] = useState(11);
   const [modeName, setModeName] = useState("");
+  const [playerCount, setPlayerCount] = useState(7);
 
-  function goToStep2() {
+  function handleStep1Next() {
+    if (!modeName.trim()) return;
     setStep(2);
   }
 
-  // Close on backdrop click (step 1 only)
-  function onBackdropClick(e: React.MouseEvent) {
-    if (e.target === e.currentTarget) onClose();
+  function handleSaveFormation(formation: CustomFormation) {
+    const newMode: CustomMode = {
+      id: `cm-${Date.now()}`,
+      name: modeName.trim(),
+      playerCount,
+      formations: [formation],
+    };
+    onSave(newMode);
   }
-
-  // Close on Escape (step 1 only — step 2 handled by FormationBuilderSheet)
-  useEffect(() => {
-    if (step !== 1) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onClose();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose, step]);
 
   if (step === 2) {
     return (
       <FormationBuilderSheet
         playerCount={playerCount}
-        onSave={(formation: CustomFormation) => {
-          const mode: CustomMode = {
-            id: `cm-${Date.now()}`,
-            name: modeName.trim(),
-            playerCount,
-            formations: [formation],
-          };
-          onSave(mode);
-        }}
+        onSave={handleSaveFormation}
         onBack={() => setStep(1)}
-        onCancel={onClose}
+        backLabel="← Back"
       />
     );
   }
 
+  // Step 1: mode name + player count
   return (
-    <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4"
-      onClick={onBackdropClick}
-    >
-      <div
-        className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-full max-w-sm"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-base font-bold text-zinc-100 mb-5">Create Custom Mode</h2>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-xl p-6 w-80 flex flex-col gap-4">
+        <h2 className="text-base font-bold text-zinc-100">Create Custom Mode</h2>
 
-        {/* Player count */}
-        <div className="mb-4">
-          <label className="text-[0.65rem] font-semibold uppercase tracking-widest text-zinc-400 block mb-2">
-            Number of Players
-          </label>
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setPlayerCount((c) => Math.max(1, c - 1))}
-              className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-600 text-zinc-200 font-bold text-lg hover:bg-zinc-700 transition-colors flex items-center justify-center"
-            >
-              −
-            </button>
-            <span className="text-2xl font-bold text-zinc-100 w-8 text-center">{playerCount}</span>
-            <button
-              onClick={() => setPlayerCount((c) => Math.min(11, c + 1))}
-              className="w-8 h-8 rounded-lg bg-zinc-800 border border-zinc-600 text-zinc-200 font-bold text-lg hover:bg-zinc-700 transition-colors flex items-center justify-center"
-            >
-              +
-            </button>
-          </div>
-        </div>
-
-        {/* Mode name */}
-        <div className="mb-6">
-          <label className="text-[0.65rem] font-semibold uppercase tracking-widest text-zinc-400 block mb-2">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
             Mode Name
           </label>
           <input
+            autoFocus
             type="text"
             value={modeName}
-            onChange={(e) => setModeName(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && modeName.trim()) goToStep2();
-            }}
-            placeholder="e.g. 7v7"
-            className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 transition-colors"
+            onChange={e => setModeName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && handleStep1Next()}
+            placeholder="e.g. 7-a-side"
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 transition-colors"
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex flex-col gap-1.5">
+          <label className="text-xs font-semibold text-zinc-400 uppercase tracking-widest">
+            Players per team (including GK)
+          </label>
+          <input
+            type="number"
+            min={2}
+            max={15}
+            value={playerCount}
+            onChange={e => setPlayerCount(Math.max(2, Math.min(15, Number(e.target.value))))}
+            className="bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-100 outline-none focus:border-green-500 transition-colors"
+          />
+        </div>
+
+        <div className="flex gap-2 mt-2">
           <button
             onClick={onClose}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors border border-zinc-600"
           >
             Cancel
           </button>
           <button
-            onClick={goToStep2}
+            onClick={handleStep1Next}
             disabled={!modeName.trim()}
-            className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            className="flex-1 px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Next →
           </button>

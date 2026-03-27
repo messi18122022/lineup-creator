@@ -1,99 +1,92 @@
 "use client";
-import { useState, useRef, useCallback, useEffect } from "react";
+
+import { useState, useRef, useCallback } from "react";
 import FieldLines from "@/components/field/FieldLines";
 import { CustomFormation } from "@/types";
 import { generateDefaultPositions } from "@/lib/customModes";
 
-export interface FormationBuilderSheetProps {
+interface FormationBuilderSheetProps {
   playerCount: number;
   onSave: (formation: CustomFormation) => void;
   onBack: () => void;
-  onCancel: () => void;
   backLabel?: string;
+  // Edit mode props
+  initialPositions?: [number, number][];
+  initialHasGoalkeeper?: boolean;
+  initialFormationName?: string;
+  editingId?: string;
 }
 
 export default function FormationBuilderSheet({
   playerCount,
   onSave,
   onBack,
-  onCancel,
   backLabel = "← Back",
+  initialPositions,
+  initialHasGoalkeeper,
+  initialFormationName,
+  editingId,
 }: FormationBuilderSheetProps) {
-  const [positions, setPositions] = useState<[number, number][]>(() =>
-    generateDefaultPositions(playerCount)
+  const [positions, setPositions] = useState<[number, number][]>(
+    initialPositions ?? generateDefaultPositions(playerCount)
   );
-  const [hasGoalkeeper, setHasGoalkeeper] = useState(false);
-  const [formationName, setFormationName] = useState("");
+  const [hasGoalkeeper, setHasGoalkeeper] = useState(initialHasGoalkeeper ?? true);
+  const [formationName, setFormationName] = useState(initialFormationName ?? "");
+  const [dragging, setDragging] = useState<number | null>(null);
 
-  const draggingIndex = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Goalkeeper toggle
-  function toggleGoalkeeper(checked: boolean) {
-    setHasGoalkeeper(checked);
-    if (checked) {
-      setPositions((prev) => {
-        const next = [...prev] as [number, number][];
-        next[0] = [50, 90];
-        return next;
-      });
-    }
+  function getRelativePosition(clientX: number, clientY: number): [number, number] {
+    const rect = containerRef.current!.getBoundingClientRect();
+    const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
+    const y = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
+    return [x, y];
   }
 
-  // Drag handlers
-  function onMouseDown(index: number, e: React.MouseEvent) {
+  const onMouseDown = useCallback((index: number, e: React.MouseEvent) => {
     if (hasGoalkeeper && index === 0) return;
     e.preventDefault();
-    draggingIndex.current = index;
-  }
+    setDragging(index);
+  }, [hasGoalkeeper]);
 
   const onMouseMove = useCallback((e: React.MouseEvent) => {
-    if (draggingIndex.current === null || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(2, Math.min(98, ((e.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(2, Math.min(98, ((e.clientY - rect.top) / rect.height) * 100));
-    const idx = draggingIndex.current;
-    setPositions((prev) => {
+    if (dragging === null) return;
+    const [x, y] = getRelativePosition(e.clientX, e.clientY);
+    setPositions(prev => {
       const next = [...prev] as [number, number][];
-      next[idx] = [Math.round(x), Math.round(y)];
+      next[dragging] = [x, y];
       return next;
     });
+  }, [dragging]);
+
+  const onMouseUp = useCallback(() => {
+    setDragging(null);
   }, []);
 
-  function onMouseUp() {
-    draggingIndex.current = null;
-  }
-
-  const onTouchStart = useCallback(
-    (index: number, e: React.TouchEvent) => {
-      if (hasGoalkeeper && index === 0) return;
-      e.preventDefault();
-      draggingIndex.current = index;
-    },
-    [hasGoalkeeper]
-  );
+  const onTouchStart = useCallback((index: number, e: React.TouchEvent) => {
+    if (hasGoalkeeper && index === 0) return;
+    e.preventDefault();
+    setDragging(index);
+  }, [hasGoalkeeper]);
 
   const onTouchMove = useCallback((e: React.TouchEvent) => {
-    if (draggingIndex.current === null || !containerRef.current) return;
+    if (dragging === null) return;
     const touch = e.touches[0];
-    const rect = containerRef.current.getBoundingClientRect();
-    const x = Math.max(2, Math.min(98, ((touch.clientX - rect.left) / rect.width) * 100));
-    const y = Math.max(2, Math.min(98, ((touch.clientY - rect.top) / rect.height) * 100));
-    const idx = draggingIndex.current;
-    setPositions((prev) => {
+    const [x, y] = getRelativePosition(touch.clientX, touch.clientY);
+    setPositions(prev => {
       const next = [...prev] as [number, number][];
-      next[idx] = [Math.round(x), Math.round(y)];
+      next[dragging] = [x, y];
       return next;
     });
-  }, []);
+  }, [dragging]);
 
-  function onTouchEnd() {
-    draggingIndex.current = null;
-  }
+  const onTouchEnd = useCallback(() => {
+    setDragging(null);
+  }, []);
 
   function handleSave() {
     const formation: CustomFormation = {
-      id: `cf-${Date.now()}`,
+      id: editingId ?? `cf-${Date.now()}`,
       name: formationName.trim(),
       positions: [...positions],
       hasGoalkeeper,
@@ -101,51 +94,48 @@ export default function FormationBuilderSheet({
     onSave(formation);
   }
 
-  // Escape key -> onCancel
-  useEffect(() => {
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") onCancel();
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onCancel]);
-
   return (
-    <div
-      className="fixed inset-0 bg-black/60 z-50 flex items-end sm:items-center justify-center sm:p-4"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onCancel();
-      }}
-    >
-      <div
-        className="bg-zinc-900 border border-zinc-700 rounded-t-2xl sm:rounded-2xl w-full sm:max-w-sm sm:max-h-[95dvh] h-[92dvh] flex flex-col overflow-hidden"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex-shrink-0 px-4 pt-4 pb-2">
-          <h2 className="text-base font-bold text-zinc-100 mb-1">Create Formation</h2>
-          <label className="flex items-center gap-2 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={hasGoalkeeper}
-              onChange={(e) => toggleGoalkeeper(e.target.checked)}
-              className="w-4 h-4 accent-green-500"
-            />
-            <span className="text-sm font-medium text-zinc-200">Goalkeeper</span>
-          </label>
-        </div>
+    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col">
+      {/* Top toolbar */}
+      <div className="flex-shrink-0 h-14 bg-zinc-900 border-b border-zinc-700 flex items-center gap-3 px-4">
+        <button
+          onClick={onBack}
+          className="text-zinc-400 hover:text-zinc-100 transition-colors text-sm font-semibold flex-shrink-0"
+        >
+          {backLabel}
+        </button>
+        <label className="flex items-center gap-1.5 flex-shrink-0 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={hasGoalkeeper}
+            onChange={e => setHasGoalkeeper(e.target.checked)}
+            className="w-4 h-4 accent-green-500"
+          />
+          <span className="text-sm text-zinc-200">Goalkeeper</span>
+        </label>
+        <input
+          type="text"
+          value={formationName}
+          onChange={e => setFormationName(e.target.value)}
+          placeholder="Formation name"
+          className="flex-1 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 transition-colors min-w-0"
+        />
+        <button
+          onClick={handleSave}
+          disabled={!formationName.trim()}
+          className="flex-shrink-0 px-4 py-1.5 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          Save
+        </button>
+      </div>
 
-        {/* Field - flex-1 so it fills available space */}
-        <div className="flex-1 min-h-0 flex items-center justify-center px-3 py-2">
+      {/* Main area */}
+      <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
+        <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
           <div
             ref={containerRef}
-            className="relative rounded-lg border-2 border-green-800 overflow-hidden select-none"
-            style={{
-              aspectRatio: "68 / 105",
-              height: "100%",
-              maxWidth: "100%",
-              background: "linear-gradient(to bottom, #15803d 0%, #16a34a 100%)",
-            }}
+            className="relative w-full h-full rounded-lg border-4 border-green-800 overflow-hidden select-none"
+            style={{ background: "linear-gradient(to bottom, #15803d 0%, #16a34a 100%)" }}
             onMouseMove={onMouseMove}
             onMouseUp={onMouseUp}
             onMouseLeave={onMouseUp}
@@ -172,11 +162,11 @@ export default function FormationBuilderSheet({
                     top: `${pos[1]}%`,
                     cursor: isGK ? "not-allowed" : "grab",
                   }}
-                  onMouseDown={(e) => onMouseDown(i, e)}
-                  onTouchStart={(e) => onTouchStart(i, e)}
+                  onMouseDown={e => onMouseDown(i, e)}
+                  onTouchStart={e => onTouchStart(i, e)}
                 >
                   <div
-                    className={`w-7 h-7 rounded-full border-2 border-white shadow-md ${
+                    className={`w-9 h-9 rounded-full border-[3px] border-white shadow-lg ${
                       isGK ? "bg-yellow-300" : "bg-white"
                     }`}
                   />
@@ -185,46 +175,7 @@ export default function FormationBuilderSheet({
             })}
           </div>
         </div>
-
-        {/* Footer */}
-        <div className="flex-shrink-0 px-4 pb-4 pt-2">
-          <div className="mb-3">
-            <label className="text-[0.65rem] font-semibold uppercase tracking-widest text-zinc-400 block mb-1">
-              Formation Name
-            </label>
-            <input
-              type="text"
-              value={formationName}
-              onChange={(e) => setFormationName(e.target.value)}
-              placeholder="e.g. 3-3-1"
-              className="w-full bg-zinc-800 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-zinc-100 placeholder-zinc-500 outline-none focus:border-green-500 transition-colors"
-            />
-          </div>
-          <div className="flex justify-between gap-2">
-            <button
-              onClick={onBack}
-              className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
-            >
-              {backLabel}
-            </button>
-            <div className="flex gap-2">
-              <button
-                onClick={onCancel}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-zinc-400 hover:text-zinc-200 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={!formationName.trim()}
-                className="px-4 py-2 rounded-lg text-sm font-semibold bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

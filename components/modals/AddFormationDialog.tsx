@@ -1,5 +1,6 @@
 "use client";
-import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
+
+import FormationBuilderSheet from "./FormationBuilderSheet";
 import { CustomFormation } from "@/types";
 
 interface AddFormationDialogProps {
@@ -14,7 +15,6 @@ export default function AddFormationDialog({ playerCount, onSave, onClose }: Add
       playerCount={playerCount}
       onSave={onSave}
       onBack={onClose}
-      onCancel={onClose}
       backLabel="Cancel"
     />
   );
