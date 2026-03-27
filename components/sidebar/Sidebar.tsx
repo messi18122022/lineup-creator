@@ -1,8 +1,7 @@
-import ModeCard from "./ModeCard";
-import FormationCard from "./FormationCard";
+import ModeCard, { ModeItem } from "./ModeCard";
+import FormationCard, { FormationItem } from "./FormationCard";
 import UserButton from "./UserButton";
 import { logout } from "@/app/actions/auth";
-import { CustomFormation, CustomMode } from "@/types";
 
 interface SidebarProps {
   mode: string;
@@ -11,8 +10,9 @@ interface SidebarProps {
   onFormationChange: (formation: string) => void;
   userEmail: string | null;
   isPro: boolean;
-  customModes: CustomMode[];
-  extraFormations: Record<string, CustomFormation[]>;
+  modes: ModeItem[];
+  formations: FormationItem[];
+  selectedFormationName: string;
   onCreateMode: () => void;
   onAddFormation: () => void;
   onRenameMode: (id: string, name: string) => void;
@@ -23,21 +23,10 @@ interface SidebarProps {
 }
 
 export default function Sidebar({
-  mode,
-  formation,
-  onModeChange,
-  onFormationChange,
-  userEmail,
-  isPro,
-  customModes,
-  extraFormations,
-  onCreateMode,
-  onAddFormation,
-  onRenameMode,
-  onDeleteMode,
-  onRenameFormation,
-  onDeleteFormation,
-  onEditFormation,
+  mode, formation, onModeChange, onFormationChange,
+  userEmail, isPro, modes, formations, selectedFormationName,
+  onCreateMode, onAddFormation, onRenameMode, onDeleteMode,
+  onRenameFormation, onDeleteFormation, onEditFormation,
 }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
@@ -46,39 +35,24 @@ export default function Sidebar({
         <span className="text-zinc-200"> Creator</span>
       </h1>
       <ModeCard
-        value={mode}
-        onChange={onModeChange}
-        isPro={isPro}
-        customModes={customModes}
-        onCreateMode={onCreateMode}
-        onRenameMode={onRenameMode}
-        onDeleteMode={onDeleteMode}
+        value={mode} onChange={onModeChange} isPro={isPro} modes={modes}
+        onCreateMode={onCreateMode} onRenameMode={onRenameMode} onDeleteMode={onDeleteMode}
       />
       <FormationCard
-        mode={mode}
-        value={formation}
-        onChange={onFormationChange}
-        isPro={isPro}
-        customModes={customModes}
-        extraFormations={extraFormations}
-        onAddFormation={onAddFormation}
-        onRenameFormation={onRenameFormation}
-        onDeleteFormation={onDeleteFormation}
-        onEditFormation={onEditFormation}
+        value={formation} onChange={onFormationChange} isPro={isPro}
+        formations={formations} selectedFormationName={selectedFormationName}
+        onAddFormation={onAddFormation} onRenameFormation={onRenameFormation}
+        onDeleteFormation={onDeleteFormation} onEditFormation={onEditFormation}
       />
       <div className="mt-auto flex flex-col gap-2">
         {!userEmail ? (
           <>
-            <a
-              href="/auth?mode=login"
-              className="block w-full text-center text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-2"
-            >
+            <a href="/auth?mode=login"
+              className="block w-full text-center text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-2">
               Sign in to Pro Account
             </a>
-            <a
-              href="/pro"
-              className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
-            >
+            <a href="/pro"
+              className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center">
               <span className="text-sm font-semibold text-white">Go Pro</span>
             </a>
           </>
@@ -89,20 +63,16 @@ export default function Sidebar({
             </div>
             <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">Pro</span>
             <form action={logout} className="ml-auto">
-              <button
-                type="submit"
-                className="h-8 px-3 bg-red-700 hover:bg-red-600 transition-colors rounded text-sm font-semibold text-white"
-              >
+              <button type="submit"
+                className="h-8 px-3 bg-red-700 hover:bg-red-600 transition-colors rounded text-sm font-semibold text-white">
                 Logout
               </button>
             </form>
           </div>
         ) : (
           <>
-            <a
-              href="/pro"
-              className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center"
-            >
+            <a href="/pro"
+              className="block w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-center">
               <span className="text-sm font-semibold text-white">Upgrade to Pro</span>
             </a>
             <UserButton email={userEmail} />

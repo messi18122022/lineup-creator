@@ -1,20 +1,22 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import Sidebar from "@/components/sidebar/Sidebar";
 import Field from "@/components/field/Field";
-import { FormationKey, GameMode, CustomFormation, CustomMode } from "@/types";
+import CreateModeDialog from "@/components/modals/CreateModeDialog";
+import AddFormationDialog from "@/components/modals/AddFormationDialog";
+import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
+import { GameMode, CustomMode, CustomFormation, FormationKey } from "@/types";
 import { DEFAULT_FORMATION_FOR_MODE, FORMATIONS_BY_MODE, FORMATIONS } from "@/lib/formations";
 import {
-  loadCustomModes,
-  saveCustomModes,
-  loadExtraFormations,
-  saveExtraFormations,
+  loadCustomModes, saveCustomModes,
+  loadExtraFormations, saveExtraFormations,
+  loadModeOverrides, saveModeOverrides,
+  loadFormationOverrides, saveFormationOverrides,
+  ModeOverrides, FormationOverrides,
 } from "@/lib/customModes";
-import AddFormationDialog from "@/components/modals/AddFormationDialog";
-import CreateModeDialog from "@/components/modals/CreateModeDialog";
-import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
 
+const BUILTIN_MODES: GameMode[] = ["11v11", "4+1", "5+1"];
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 
 interface HomeClientProps {
@@ -41,250 +43,291 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [hintVisible, setHintVisible] = useState(true);
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Custom modes & formations state
   const [customModes, setCustomModes] = useState<CustomMode[]>([]);
   const [extraFormations, setExtraFormations] = useState<Record<string, CustomFormation[]>>({});
+  const [modeOverrides, setModeOverrides] = useState<ModeOverrides>({ renames: {}, deleted: [] });
+  const [formationOverrides, setFormationOverrides] = useState<FormationOverrides>({ renames: {}, deleted: [], edits: {} });
 
-  // Dialog state
   const [showCreateMode, setShowCreateMode] = useState(false);
   const [showAddFormation, setShowAddFormation] = useState(false);
   const [editFormationId, setEditFormationId] = useState<string | null>(null);
   const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
 
-  // Load persisted data on mount
   useEffect(() => {
     setCustomModes(loadCustomModes());
     setExtraFormations(loadExtraFormations());
+    setModeOverrides(loadModeOverrides());
+    setFormationOverrides(loadFormationOverrides());
   }, []);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
-    return () => {
-      if (hintTimer.current) clearTimeout(hintTimer.current);
-    };
+    return () => { if (hintTimer.current) clearTimeout(hintTimer.current); };
   }, []);
 
   function handleToggle() {
     if (hintTimer.current) clearTimeout(hintTimer.current);
     setHintVisible(false);
-    setSidebarOpen((v) => !v);
+    setSidebarOpen(v => !v);
   }
+
+  // ── Computed sidebar lists ────────────────────────────────────────────────
+
+  const displayModes = useMemo(() => [
+    ...BUILTIN_MODES
+      .filter(m => !modeOverrides.deleted.includes(m))
+      .map(m => ({ id: m, name: modeOverrides.renames[m] ?? m })),
+    ...customModes.map(cm => ({ id: cm.id, name: modeOverrides.renames[cm.id] ?? cm.name })),
+  ], [customModes, modeOverrides]);
+
+  const displayFormations = useMemo(() => {
+    const isBuiltin = BUILTIN_MODES.includes(mode as GameMode);
+    const builtinKeys: string[] = isBuiltin ? (FORMATIONS_BY_MODE[mode as GameMode] ?? []) : [];
+    const cm = customModes.find(m => m.id === mode);
+    const customForMode: CustomFormation[] = cm
+      ? [...cm.formations, ...(extraFormations[mode] ?? [])]
+      : (extraFormations[mode] ?? []);
+    return [
+      ...builtinKeys
+        .filter(k => !formationOverrides.deleted.includes(k))
+        .map(k => ({ id: k, name: formationOverrides.renames[k] ?? k })),
+      ...customForMode
+        .filter(f => !formationOverrides.deleted.includes(f.id))
+        .map(f => ({ id: f.id, name: formationOverrides.renames[f.id] ?? f.name })),
+    ];
+  }, [mode, customModes, extraFormations, formationOverrides]);
+
+  const selectedFormationName = useMemo(
+    () => displayFormations.find(f => f.id === formation)?.name ?? formation,
+    [displayFormations, formation]
+  );
+
+  // ── Field positions ───────────────────────────────────────────────────────
+
+  const currentPositions = useMemo((): [number, number][] | undefined => {
+    if (formationOverrides.edits[formation]) return formationOverrides.edits[formation];
+    const cm = customModes.find(m => m.id === mode);
+    if (cm) {
+      return [...cm.formations, ...(extraFormations[mode] ?? [])].find(f => f.id === formation)?.positions;
+    }
+    return (extraFormations[mode] ?? []).find(f => f.id === formation)?.positions;
+  }, [mode, formation, customModes, extraFormations, formationOverrides]);
+
+  // ── Mode change ───────────────────────────────────────────────────────────
 
   function handleModeChange(newMode: string) {
     setMode(newMode);
-    // Set default formation for the new mode
-    const builtInDefault = DEFAULT_FORMATION_FOR_MODE[newMode as GameMode];
-    if (builtInDefault) {
-      setFormation(builtInDefault);
+    const builtinDefault = DEFAULT_FORMATION_FOR_MODE[newMode as GameMode];
+    if (builtinDefault) {
+      const available = (FORMATIONS_BY_MODE[newMode as GameMode] ?? [])
+        .filter(k => !formationOverrides.deleted.includes(k));
+      setFormation(available[0] ?? builtinDefault);
     } else {
-      // Custom mode — pick first formation
       const cm = customModes.find(m => m.id === newMode);
-      const firstFormation = cm?.formations[0] ?? (extraFormations[newMode] ?? [])[0];
-      setFormation(firstFormation?.id ?? "");
+      const allForMode = cm
+        ? [...cm.formations, ...(extraFormations[newMode] ?? [])]
+        : (extraFormations[newMode] ?? []);
+      setFormation(allForMode.filter(f => !formationOverrides.deleted.includes(f.id))[0]?.id ?? "");
     }
   }
 
   function handleNameChange(index: number, name: string) {
-    setPlayerNames((prev) => {
-      const next = [...prev];
-      next[index] = name;
-      return next;
-    });
+    setPlayerNames(prev => { const next = [...prev]; next[index] = name; return next; });
   }
 
-  function handleOpenAddFormation() {
-    // Determine player count for the current mode
-    const cm = customModes.find(m => m.id === mode);
-    const builtInFormations = FORMATIONS_BY_MODE[mode as GameMode];
-    let playerCount = 11;
-    if (cm) {
-      playerCount = cm.playerCount;
-    } else if (builtInFormations) {
-      const firstKey = builtInFormations[0];
-      playerCount = FORMATIONS[firstKey]?.positions.length ?? 11;
-    }
-    setAddFormationPlayerCount(playerCount);
-    setEditFormationId(null);
-    setShowAddFormation(true);
-  }
-
-  // ----- Custom mode handlers -----
+  // ── Create mode ───────────────────────────────────────────────────────────
 
   function handleCreateMode(newMode: CustomMode) {
     const updated = [...customModes, newMode];
     setCustomModes(updated);
     saveCustomModes(updated);
     setShowCreateMode(false);
-    // Switch to new mode
     setMode(newMode.id);
-    const firstFormation = newMode.formations[0];
-    setFormation(firstFormation?.id ?? "");
+    setFormation(newMode.formations[0]?.id ?? "");
   }
+
+  // ── Rename / delete mode ──────────────────────────────────────────────────
 
   function handleRenameMode(id: string, newName: string) {
-    const updated = customModes.map(m => m.id === id ? { ...m, name: newName } : m);
-    setCustomModes(updated);
-    saveCustomModes(updated);
-  }
-
-  function handleDeleteMode(id: string) {
-    const updated = customModes.filter(m => m.id !== id);
-    setCustomModes(updated);
-    saveCustomModes(updated);
-    if (mode === id) {
-      setMode("11v11");
-      setFormation(DEFAULT_FORMATION_FOR_MODE["11v11"]);
+    if (BUILTIN_MODES.includes(id as GameMode)) {
+      const updated = { ...modeOverrides, renames: { ...modeOverrides.renames, [id]: newName } };
+      setModeOverrides(updated); saveModeOverrides(updated);
+    } else {
+      const updated = customModes.map(m => m.id === id ? { ...m, name: newName } : m);
+      setCustomModes(updated); saveCustomModes(updated);
     }
   }
 
-  // ----- Formation handlers -----
+  function handleDeleteMode(id: string) {
+    if (BUILTIN_MODES.includes(id as GameMode)) {
+      const updated = { ...modeOverrides, deleted: [...modeOverrides.deleted, id] };
+      setModeOverrides(updated); saveModeOverrides(updated);
+    } else {
+      const updated = customModes.filter(m => m.id !== id);
+      setCustomModes(updated); saveCustomModes(updated);
+    }
+    if (mode === id) {
+      const remaining = BUILTIN_MODES.filter(m => m !== id && !modeOverrides.deleted.includes(m));
+      const remainingCustom = customModes.filter(m => m.id !== id);
+      const next = remaining[0] ?? remainingCustom[0]?.id;
+      if (next) handleModeChange(next);
+      else { setMode(""); setFormation(""); }
+    }
+  }
+
+  // ── Add formation ─────────────────────────────────────────────────────────
+
+  function handleOpenAddFormation() {
+    const cm = customModes.find(m => m.id === mode);
+    let playerCount = 11;
+    if (cm) {
+      playerCount = cm.playerCount;
+    } else {
+      const keys = FORMATIONS_BY_MODE[mode as GameMode];
+      if (keys) playerCount = FORMATIONS[keys[0] as FormationKey]?.positions.length ?? 11;
+    }
+    setAddFormationPlayerCount(playerCount);
+    setEditFormationId(null);
+    setShowAddFormation(true);
+  }
 
   function handleAddFormation(modeId: string, f: CustomFormation) {
-    const updated = {
-      ...extraFormations,
-      [modeId]: [...(extraFormations[modeId] ?? []), f],
-    };
-    setExtraFormations(updated);
-    saveExtraFormations(updated);
+    const updated = { ...extraFormations, [modeId]: [...(extraFormations[modeId] ?? []), f] };
+    setExtraFormations(updated); saveExtraFormations(updated);
     setFormation(f.id);
     setShowAddFormation(false);
   }
 
+  // ── Rename / delete formation ─────────────────────────────────────────────
+
   function handleRenameFormation(formationId: string, newName: string) {
-    // Check extraFormations first
-    const updatedExtra = Object.fromEntries(
-      Object.entries(extraFormations).map(([modeId, formations]) => [
-        modeId,
-        formations.map(f => f.id === formationId ? { ...f, name: newName } : f),
-      ])
-    );
-    const extraChanged = JSON.stringify(updatedExtra) !== JSON.stringify(extraFormations);
-    if (extraChanged) {
-      setExtraFormations(updatedExtra);
-      saveExtraFormations(updatedExtra);
+    if (formationId in FORMATIONS) {
+      const updated = { ...formationOverrides, renames: { ...formationOverrides.renames, [formationId]: newName } };
+      setFormationOverrides(updated); saveFormationOverrides(updated);
       return;
     }
-    // Check custom modes
-    const updatedModes = customModes.map(m => ({
-      ...m,
-      formations: m.formations.map(f => f.id === formationId ? { ...f, name: newName } : f),
+    let foundExtra = false;
+    const updatedExtra = Object.fromEntries(Object.entries(extraFormations).map(([mId, fs]) => {
+      const mapped = fs.map(f => f.id === formationId ? { ...f, name: newName } : f);
+      if (JSON.stringify(mapped) !== JSON.stringify(fs)) foundExtra = true;
+      return [mId, mapped];
     }));
-    setCustomModes(updatedModes);
-    saveCustomModes(updatedModes);
+    if (foundExtra) { setExtraFormations(updatedExtra); saveExtraFormations(updatedExtra); return; }
+    const updatedModes = customModes.map(m => ({
+      ...m, formations: m.formations.map(f => f.id === formationId ? { ...f, name: newName } : f),
+    }));
+    setCustomModes(updatedModes); saveCustomModes(updatedModes);
   }
 
   function handleDeleteFormation(formationId: string) {
-    let found = false;
-    const updatedExtra = Object.fromEntries(
-      Object.entries(extraFormations).map(([modeId, formations]) => {
-        const filtered = formations.filter(f => f.id !== formationId);
-        if (filtered.length !== formations.length) found = true;
-        return [modeId, filtered];
-      })
-    );
-    if (found) {
-      setExtraFormations(updatedExtra);
-      saveExtraFormations(updatedExtra);
+    if (formationId in FORMATIONS) {
+      const updated = { ...formationOverrides, deleted: [...formationOverrides.deleted, formationId] };
+      setFormationOverrides(updated); saveFormationOverrides(updated);
     } else {
-      const updatedModes = customModes.map(m => ({
-        ...m,
-        formations: m.formations.filter(f => f.id !== formationId),
+      let found = false;
+      const updatedExtra = Object.fromEntries(Object.entries(extraFormations).map(([mId, fs]) => {
+        const filtered = fs.filter(f => f.id !== formationId);
+        if (filtered.length !== fs.length) found = true;
+        return [mId, filtered];
       }));
-      setCustomModes(updatedModes);
-      saveCustomModes(updatedModes);
+      if (found) { setExtraFormations(updatedExtra); saveExtraFormations(updatedExtra); }
+      else {
+        const updatedModes = customModes.map(m => ({ ...m, formations: m.formations.filter(f => f.id !== formationId) }));
+        setCustomModes(updatedModes); saveCustomModes(updatedModes);
+      }
     }
     if (formation === formationId) {
-      const cm = customModes.find(m => m.id === mode);
-      if (cm) {
-        const remaining = [...cm.formations, ...(extraFormations[mode] ?? [])].filter(
-          f => f.id !== formationId
-        );
-        setFormation(remaining[0]?.id ?? "");
-      } else {
-        setFormation(DEFAULT_FORMATION_FOR_MODE[mode as GameMode] ?? "4-3-3");
-      }
+      setFormation(displayFormations.find(f => f.id !== formationId)?.id ?? "");
     }
   }
 
+  // ── Edit formation ────────────────────────────────────────────────────────
+
   function handleEditFormation(formationId: string) {
+    let playerCount = 11;
+    if (formationId in FORMATIONS) {
+      playerCount = FORMATIONS[formationId as FormationKey]?.positions.length ?? 11;
+    } else {
+      const cm = customModes.find(m => m.id === mode);
+      const allForMode = cm ? [...cm.formations, ...(extraFormations[mode] ?? [])] : (extraFormations[mode] ?? []);
+      playerCount = allForMode.find(f => f.id === formationId)?.positions.length ?? 11;
+    }
+    setAddFormationPlayerCount(playerCount);
     setEditFormationId(formationId);
     setShowAddFormation(true);
   }
 
   function handleSaveEditedFormation(updated: CustomFormation) {
-    let found = false;
-    const updatedExtra = Object.fromEntries(
-      Object.entries(extraFormations).map(([modeId, formations]) => {
-        const mapped = formations.map(f => f.id === updated.id ? updated : f);
-        if (JSON.stringify(mapped) !== JSON.stringify(formations)) found = true;
-        return [modeId, mapped];
-      })
-    );
-    if (found) {
-      setExtraFormations(updatedExtra);
-      saveExtraFormations(updatedExtra);
+    if (updated.id in FORMATIONS) {
+      const fo = {
+        ...formationOverrides,
+        edits: { ...formationOverrides.edits, [updated.id]: updated.positions },
+        renames: { ...formationOverrides.renames, [updated.id]: updated.name },
+      };
+      setFormationOverrides(fo); saveFormationOverrides(fo);
     } else {
-      const updatedModes = customModes.map(m => ({
-        ...m,
-        formations: m.formations.map(f => f.id === updated.id ? updated : f),
+      let found = false;
+      const updatedExtra = Object.fromEntries(Object.entries(extraFormations).map(([mId, fs]) => {
+        const mapped = fs.map(f => f.id === updated.id ? updated : f);
+        if (JSON.stringify(mapped) !== JSON.stringify(fs)) found = true;
+        return [mId, mapped];
       }));
-      setCustomModes(updatedModes);
-      saveCustomModes(updatedModes);
+      if (found) { setExtraFormations(updatedExtra); saveExtraFormations(updatedExtra); }
+      else {
+        const updatedModes = customModes.map(m => ({ ...m, formations: m.formations.map(f => f.id === updated.id ? updated : f) }));
+        setCustomModes(updatedModes); saveCustomModes(updatedModes);
+      }
     }
     setShowAddFormation(false);
     setEditFormationId(null);
   }
 
-  // Determine field positions to render
-  function getCurrentPositions(): [number, number][] | undefined {
-    const cm = customModes.find(m => m.id === mode);
-    if (cm) {
-      const cf = [...cm.formations, ...(extraFormations[mode] ?? [])].find(f => f.id === formation);
-      return cf?.positions;
+  function getEditFormationData(): CustomFormation | undefined {
+    if (!editFormationId) return undefined;
+    if (editFormationId in FORMATIONS) {
+      return {
+        id: editFormationId,
+        name: formationOverrides.renames[editFormationId] ?? editFormationId,
+        positions: formationOverrides.edits[editFormationId] ?? FORMATIONS[editFormationId as FormationKey].positions,
+        hasGoalkeeper: false,
+      };
     }
-    const extra = (extraFormations[mode] ?? []).find(f => f.id === formation);
-    return extra?.positions;
+    const cm = customModes.find(m => m.id === mode);
+    const allForMode = cm ? [...cm.formations, ...(extraFormations[mode] ?? [])] : (extraFormations[mode] ?? []);
+    return allForMode.find(f => f.id === editFormationId);
   }
 
-  const currentPositions = getCurrentPositions();
+  // ── Render ────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
       <div className="relative h-full flex-shrink-0">
         <div className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}>
           <Sidebar
-            mode={mode}
-            formation={formation}
-            onModeChange={handleModeChange}
-            onFormationChange={setFormation}
-            userEmail={userEmail}
-            isPro={isPro}
-            customModes={customModes}
-            extraFormations={extraFormations}
+            mode={mode} formation={formation}
+            onModeChange={handleModeChange} onFormationChange={setFormation}
+            userEmail={userEmail} isPro={isPro}
+            modes={displayModes} formations={displayFormations}
+            selectedFormationName={selectedFormationName}
             onCreateMode={() => setShowCreateMode(true)}
             onAddFormation={handleOpenAddFormation}
-            onRenameMode={handleRenameMode}
-            onDeleteMode={handleDeleteMode}
-            onRenameFormation={handleRenameFormation}
-            onDeleteFormation={handleDeleteFormation}
+            onRenameMode={handleRenameMode} onDeleteMode={handleDeleteMode}
+            onRenameFormation={handleRenameFormation} onDeleteFormation={handleDeleteFormation}
             onEditFormation={handleEditFormation}
           />
         </div>
         <div className="absolute top-4 -right-8">
-          <button
-            onClick={handleToggle}
+          <button onClick={handleToggle}
             className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
-            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-          >
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}>
             <SidebarToggleIcon />
           </button>
-          <span
-            className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 animate-shake ${hintVisible ? "opacity-100" : "opacity-0"}`}
-          >
+          <span className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 animate-shake ${hintVisible ? "opacity-100" : "opacity-0"}`}>
             {sidebarOpen ? "Click to hide sidebar" : "Click to show sidebar"}
           </span>
         </div>
       </div>
+
       <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
         <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
           <Field
@@ -296,37 +339,25 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
         </div>
       </main>
 
-      {/* Dialogs */}
       {showCreateMode && (
-        <CreateModeDialog
-          onSave={handleCreateMode}
-          onClose={() => setShowCreateMode(false)}
-        />
+        <CreateModeDialog onSave={handleCreateMode} onClose={() => setShowCreateMode(false)} />
       )}
 
       {showAddFormation && (() => {
-        if (editFormationId) {
-          const cm = customModes.find(m => m.id === mode);
-          let editData: CustomFormation | undefined;
-          if (cm) {
-            editData = [...cm.formations, ...(extraFormations[mode] ?? [])].find(f => f.id === editFormationId);
-          } else {
-            editData = (extraFormations[mode] ?? []).find(f => f.id === editFormationId);
-          }
-          if (editData) {
-            return (
-              <FormationBuilderSheet
-                playerCount={addFormationPlayerCount}
-                initialPositions={editData.positions}
-                initialHasGoalkeeper={editData.hasGoalkeeper}
-                initialFormationName={editData.name}
-                editingId={editData.id}
-                onSave={handleSaveEditedFormation}
-                onBack={() => { setShowAddFormation(false); setEditFormationId(null); }}
-                backLabel="← Cancel"
-              />
-            );
-          }
+        const editData = getEditFormationData();
+        if (editFormationId && editData) {
+          return (
+            <FormationBuilderSheet
+              playerCount={addFormationPlayerCount}
+              initialPositions={editData.positions}
+              initialHasGoalkeeper={editData.hasGoalkeeper}
+              initialFormationName={editData.name}
+              editingId={editData.id}
+              onSave={handleSaveEditedFormation}
+              onBack={() => { setShowAddFormation(false); setEditFormationId(null); }}
+              backLabel="← Cancel"
+            />
+          );
         }
         return (
           <AddFormationDialog
