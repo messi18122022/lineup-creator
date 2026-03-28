@@ -26,6 +26,7 @@ function ModeButton({
   close,
   onRename,
   onDelete,
+  isPro,
 }: {
   item: ModeItem;
   isSelected: boolean;
@@ -33,6 +34,7 @@ function ModeButton({
   close: () => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
+  isPro: boolean;
 }) {
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(item.name);
@@ -69,7 +71,7 @@ function ModeButton({
       )}
       {!renaming && (
         <div className="pr-2">
-          <ThreeDotMenu anchorRef={rowRef} items={[
+          <ThreeDotMenu anchorRef={rowRef} locked={!isPro} items={[
             { label: "Rename", onClick: () => { setRenaming(true); setDraft(item.name); } },
             { label: "Delete", onClick: () => onDelete(item.id), danger: true },
           ]} />
@@ -92,6 +94,7 @@ function ModeOptions({ value, onChange, isPro, modes, onCreateMode, onRenameMode
           close={close}
           onRename={onRenameMode}
           onDelete={onDeleteMode}
+          isPro={isPro}
         />
       ))}
       {isPro ? (
