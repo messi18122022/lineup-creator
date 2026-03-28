@@ -305,7 +305,10 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
-      <div className="relative h-full flex-shrink-0">
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={handleToggle} />
+      )}
+      <div className="fixed inset-y-0 left-0 z-40 h-full md:relative md:inset-y-auto md:left-auto md:z-auto md:flex-shrink-0">
         <div className={`h-full overflow-hidden transition-[width] duration-300 ease-in-out ${sidebarOpen ? "w-60" : "w-0"}`}>
           <Sidebar
             mode={mode} formation={formation}
