@@ -50,7 +50,7 @@ export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; 
       {open && typeof document !== "undefined" && createPortal(
         <div
           style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 w-max min-w-[9rem]"
+          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 w-40"
           onMouseDown={e => e.stopPropagation()}
         >
           {items.map(item => (
