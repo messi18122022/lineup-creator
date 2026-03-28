@@ -108,7 +108,17 @@ export default function FormationBuilderSheet({
           <input
             type="checkbox"
             checked={hasGoalkeeper}
-            onChange={e => setHasGoalkeeper(e.target.checked)}
+            onChange={e => {
+              const checked = e.target.checked;
+              setHasGoalkeeper(checked);
+              if (checked) {
+                setPositions(prev => {
+                  const next = [...prev] as [number, number][];
+                  next[0] = [50, 90];
+                  return next;
+                });
+              }
+            }}
             className="w-4 h-4 accent-green-500"
           />
           <span className="text-sm text-zinc-200">Goalkeeper</span>
