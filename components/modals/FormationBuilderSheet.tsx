@@ -27,9 +27,14 @@ export default function FormationBuilderSheet({
   initialFormationName,
   editingId,
 }: FormationBuilderSheetProps) {
-  const [positions, setPositions] = useState<[number, number][]>(
-    initialPositions ?? generateDefaultPositions(playerCount)
-  );
+  const [positions, setPositions] = useState<[number, number][]>(() => {
+    if (initialPositions) return initialPositions;
+    const defaults = generateDefaultPositions(playerCount);
+    if ((initialHasGoalkeeper ?? true) && defaults.length > 0) {
+      defaults[0] = [50, 90];
+    }
+    return defaults;
+  });
   const [hasGoalkeeper, setHasGoalkeeper] = useState(initialHasGoalkeeper ?? true);
   const [formationName, setFormationName] = useState(initialFormationName ?? "");
   const [dragging, setDragging] = useState<number | null>(null);
