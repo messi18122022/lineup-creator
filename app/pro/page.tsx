@@ -5,26 +5,31 @@ const features = [
     title: "Custom Modes & Formations",
     description:
       "Create your own game modes and define custom formations for each — beyond the built-in defaults.",
+    available: true,
   },
   {
     title: "Team Management",
     description:
       "Save up to 2 teams with full player rosters. Plan lineups from your actual squad.",
+    available: false,
   },
   {
     title: "Saved Lineups",
     description:
       "Save multiple lineup plans per team and come back to edit them anytime — all stored in your account.",
+    available: false,
   },
   {
     title: "Field Customization",
     description:
       "Adjust the field to match your preferences — colors, markings, and layout.",
+    available: false,
   },
   {
     title: "Multiple Sports",
     description:
       "Switch between sports: Football, Basketball, Ice Hockey, Volleyball, and more to come.",
+    available: false,
   },
 ];
 
@@ -35,7 +40,7 @@ export default async function ProPage() {
   } = await supabase.auth.getUser();
 
   const ctaHref = user ? "/api/checkout" : "/auth?mode=register";
-  const ctaLabel = user ? "Upgrade to Pro" : "Get Started";
+  const ctaLabel = "Get Pro";
 
   return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-4 py-12">
@@ -44,32 +49,27 @@ export default async function ProPage() {
           <p className="text-xs font-semibold uppercase tracking-widest text-green-500">
             Lineup Creator
           </p>
-          <h1 className="text-2xl font-bold text-zinc-100">Go Pro</h1>
+          <h1 className="text-2xl font-bold text-zinc-100">Get Pro</h1>
           <p className="text-zinc-400 text-sm">
             Everything you need to plan like a pro.
           </p>
-        </div>
-
-        <div className="flex items-start gap-3 bg-amber-500/10 border border-amber-500/30 rounded-xl px-4 py-3">
-          <svg className="flex-shrink-0 mt-0.5" width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path d="M8 1.5L14.5 13H1.5L8 1.5Z" stroke="#f59e0b" strokeWidth="1.5" strokeLinejoin="round"/>
-            <path d="M8 6V9" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round"/>
-            <circle cx="8" cy="11" r="0.75" fill="#f59e0b"/>
-          </svg>
-          <div className="flex flex-col gap-0.5">
-            <span className="text-xs font-semibold uppercase tracking-wider text-amber-400">Coming Soon</span>
-            <span className="text-xs text-amber-200/70 leading-relaxed">
-              These features are currently in development. You can already purchase Pro — your account will unlock them as they launch.
-            </span>
-          </div>
         </div>
 
         <div className="flex flex-col gap-3">
           {features.map((f) => (
             <div
               key={f.title}
-              className="bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex gap-3"
+              className="relative bg-zinc-900 border border-zinc-800 rounded-xl p-4 flex gap-3"
             >
+              {f.available ? (
+                <span className="absolute top-2.5 right-3 text-[0.6rem] font-bold uppercase tracking-wider text-green-500">
+                  Available
+                </span>
+              ) : (
+                <span className="absolute top-2.5 right-3 text-[0.6rem] font-bold uppercase tracking-wider text-zinc-500">
+                  Coming Soon
+                </span>
+              )}
               <span className="mt-0.5 flex-shrink-0 w-4 h-4 rounded-full bg-green-500/20 border border-green-500/40 flex items-center justify-center">
                 <svg width="8" height="8" viewBox="0 0 8 8" fill="none">
                   <path
