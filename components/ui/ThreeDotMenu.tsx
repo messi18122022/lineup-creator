@@ -8,7 +8,7 @@ interface MenuItem {
   danger?: boolean;
 }
 
-export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement> }) {
+export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement | null> }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
