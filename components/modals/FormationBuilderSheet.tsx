@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import FieldLines from "@/components/field/FieldLines";
 import { CustomFormation } from "@/types";
 import { generateDefaultPositions } from "@/lib/customModes";
@@ -40,6 +40,18 @@ export default function FormationBuilderSheet({
   const [dragging, setDragging] = useState<number | null>(null);
 
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const prev = { overflow: document.body.style.overflow, position: document.body.style.position, width: document.body.style.width };
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.overflow = prev.overflow;
+      document.body.style.position = prev.position;
+      document.body.style.width = prev.width;
+    };
+  }, []);
 
   function getRelativePosition(clientX: number, clientY: number): [number, number] {
     const rect = containerRef.current!.getBoundingClientRect();
