@@ -24,11 +24,15 @@ interface HomeClientProps {
   isPro: boolean;
 }
 
-function SidebarToggleIcon() {
+function SidebarToggleIcon({ open }: { open: boolean }) {
   return (
-    <svg width="20" height="16" viewBox="0 0 20 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect x="0.75" y="0.75" width="18.5" height="14.5" rx="3.25" stroke="currentColor" strokeWidth="1.5" />
-      <line x1="6.75" y1="1" x2="6.75" y2="15" stroke="currentColor" strokeWidth="1.5" />
+    <svg
+      width="16" height="16" viewBox="0 0 24 24"
+      fill="none" stroke="currentColor" strokeWidth="2.5"
+      strokeLinecap="round" strokeLinejoin="round"
+      className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+    >
+      <polyline points="9 18 15 12 9 6" />
     </svg>
   );
 }
@@ -316,11 +320,11 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             onEditFormation={handleEditFormation}
           />
         </div>
-        <div className="absolute top-4 -right-8">
+        <div className="absolute top-4 -right-7">
           <button onClick={handleToggle}
-            className="text-green-500 hover:text-green-400 transition-colors cursor-pointer"
+            className="flex items-center justify-center w-7 h-10 bg-zinc-900 border border-l-0 border-zinc-700 rounded-r-lg text-green-500 hover:text-green-400 transition-colors cursor-pointer"
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}>
-            <SidebarToggleIcon />
+            <SidebarToggleIcon open={sidebarOpen} />
           </button>
           <span className={`absolute left-full top-1/2 -translate-y-1/2 ml-2 text-xs text-zinc-400 whitespace-nowrap pointer-events-none transition-opacity duration-500 animate-shake ${hintVisible ? "opacity-100" : "opacity-0"}`}>
             {sidebarOpen ? "Click to hide sidebar" : "Click to show sidebar"}
