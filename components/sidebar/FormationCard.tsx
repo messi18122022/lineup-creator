@@ -22,12 +22,13 @@ interface FormationCardProps {
 }
 
 function FormationButton({
-  item, isSelected, onSelect, close, onRename, onDelete, onEdit,
+  item, isSelected, onSelect, close, onRename, onDelete, onEdit, isPro,
 }: {
   item: FormationItem; isSelected: boolean; onSelect: () => void; close: () => void;
   onRename: (id: string, name: string) => void;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
+  isPro: boolean;
 }) {
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(item.name);
@@ -55,7 +56,7 @@ function FormationButton({
       )}
       {!renaming && (
         <div className="pr-2">
-          <ThreeDotMenu anchorRef={rowRef} items={[
+          <ThreeDotMenu anchorRef={rowRef} locked={!isPro} items={[
             { label: "Rename", onClick: () => { setRenaming(true); setDraft(item.name); } },
             { label: "Edit", onClick: () => onEdit(item.id) },
             { label: "Delete", onClick: () => onDelete(item.id), danger: true },
@@ -73,7 +74,7 @@ function FormationOptions({ value, onChange, isPro, formations, onAddFormation, 
       {formations.map(item => (
         <FormationButton key={item.id} item={item} isSelected={value === item.id}
           onSelect={() => onChange(item.id)} close={close}
-          onRename={onRenameFormation} onDelete={onDeleteFormation} onEdit={onEditFormation} />
+          onRename={onRenameFormation} onDelete={onDeleteFormation} onEdit={onEditFormation} isPro={isPro} />
       ))}
       {isPro ? (
         <button onClick={() => { onAddFormation(); close(); }}

@@ -8,7 +8,7 @@ interface MenuItem {
   danger?: boolean;
 }
 
-export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement | null> }) {
+export default function ThreeDotMenu({ items, anchorRef, locked }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement | null>; locked?: boolean }) {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -56,12 +56,13 @@ export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; 
           {items.map(item => (
             <button
               key={item.label}
-              onClick={(e) => { e.stopPropagation(); item.onClick(); setOpen(false); }}
-              className={`w-full px-3 py-1.5 text-left text-xs font-medium transition-colors hover:bg-zinc-700 ${
-                item.danger ? "text-red-400 hover:text-red-300" : "text-zinc-200"
+              onClick={(e) => { e.stopPropagation(); if (!locked) { item.onClick(); setOpen(false); } }}
+              className={`w-full px-3 py-1.5 text-left text-xs font-medium transition-colors flex items-center justify-between ${
+                locked ? "text-zinc-500 cursor-not-allowed" : item.danger ? "text-red-400 hover:text-red-300 hover:bg-zinc-700" : "text-zinc-200 hover:bg-zinc-700"
               }`}
             >
-              {item.label}
+              <span>{item.label}</span>
+              {locked && <span className="text-[0.6rem] font-bold uppercase tracking-wider bg-green-600 text-white px-1.5 py-0.5 rounded">Pro</span>}
             </button>
           ))}
         </div>,
