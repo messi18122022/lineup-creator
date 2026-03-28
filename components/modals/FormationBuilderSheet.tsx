@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import FieldLines from "@/components/field/FieldLines";
 import { CustomFormation } from "@/types";
 import { generateDefaultPositions } from "@/lib/customModes";
@@ -41,6 +41,18 @@ export default function FormationBuilderSheet({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const prev = { overflow: document.body.style.overflow, position: document.body.style.position, width: document.body.style.width };
+    document.body.style.overflow = "hidden";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    return () => {
+      document.body.style.overflow = prev.overflow;
+      document.body.style.position = prev.position;
+      document.body.style.width = prev.width;
+    };
+  }, []);
+
   function getRelativePosition(clientX: number, clientY: number): [number, number] {
     const rect = containerRef.current!.getBoundingClientRect();
     const x = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
@@ -77,7 +89,7 @@ export default function FormationBuilderSheet({
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (dragging === null) return;
     const touch = e.touches[0];
-    const [x, y] = getRelativePosition(touch.clientX, touch.clientY);
+    const [x, y] = getRelativePosition(touch.clientX, touch.clientY - 60);
     setPositions(prev => {
       const next = [...prev] as [number, number][];
       next[dragging] = [x, y];
@@ -100,7 +112,7 @@ export default function FormationBuilderSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col touch-none">
       {/* Top toolbar */}
       <div className="flex-shrink-0 h-14 bg-zinc-900 border-b border-zinc-700 flex items-center gap-3 px-4">
         <button
