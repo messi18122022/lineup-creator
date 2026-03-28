@@ -8,9 +8,9 @@ interface MenuItem {
   danger?: boolean;
 }
 
-export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement> }) {
+export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; anchorRef?: React.RefObject<HTMLDivElement | null> }) {
   const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0, width: 0 });
+  const [pos, setPos] = useState({ top: 0, right: 0 });
   const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -32,7 +32,7 @@ export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; 
       const menuHeight = Math.min(items.length * 32, 120);
       const spaceBelow = window.innerHeight - rect.bottom;
       const top = spaceBelow >= menuHeight + 8 ? rect.bottom + 4 : rect.top - 4 - menuHeight;
-      setPos({ top, left: rect.left, width: rect.width });
+      setPos({ top, right: window.innerWidth - rect.right });
     }
     setOpen(v => !v);
   }
@@ -49,8 +49,8 @@ export default function ThreeDotMenu({ items, anchorRef }: { items: MenuItem[]; 
       </button>
       {open && typeof document !== "undefined" && createPortal(
         <div
-          style={{ position: "fixed", top: pos.top, left: pos.left, width: pos.width, zIndex: 9999 }}
-          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1"
+          style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
+          className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 w-40"
           onMouseDown={e => e.stopPropagation()}
         >
           {items.map(item => (
