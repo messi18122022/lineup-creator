@@ -40,7 +40,7 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(
     () => typeof window !== "undefined" ? window.innerWidth >= 768 : true
   );
-  const [hintVisible, setHintVisible] = useState(true);
+  const [hintVisible, setHintVisible] = useState(!(userEmail && isPro));
   const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [customModes, setCustomModes] = useState<CustomMode[]>([]);
