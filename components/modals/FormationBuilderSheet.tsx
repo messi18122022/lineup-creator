@@ -77,7 +77,7 @@ export default function FormationBuilderSheet({
   const onTouchMove = useCallback((e: React.TouchEvent) => {
     if (dragging === null) return;
     const touch = e.touches[0];
-    const [x, y] = getRelativePosition(touch.clientX, touch.clientY);
+    const [x, y] = getRelativePosition(touch.clientX, touch.clientY - 60);
     setPositions(prev => {
       const next = [...prev] as [number, number][];
       next[dragging] = [x, y];
@@ -100,7 +100,7 @@ export default function FormationBuilderSheet({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col">
+    <div className="fixed inset-0 z-50 bg-zinc-950 flex flex-col touch-none">
       {/* Top toolbar */}
       <div className="flex-shrink-0 h-14 bg-zinc-900 border-b border-zinc-700 flex items-center gap-3 px-4">
         <button
