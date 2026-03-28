@@ -27,9 +27,14 @@ export default function FormationBuilderSheet({
   initialFormationName,
   editingId,
 }: FormationBuilderSheetProps) {
-  const [positions, setPositions] = useState<[number, number][]>(
-    initialPositions ?? generateDefaultPositions(playerCount)
-  );
+  const [positions, setPositions] = useState<[number, number][]>(() => {
+    if (initialPositions) return initialPositions;
+    const defaults = generateDefaultPositions(playerCount);
+    if ((initialHasGoalkeeper ?? true) && defaults.length > 0) {
+      defaults[0] = [50, 90];
+    }
+    return defaults;
+  });
   const [hasGoalkeeper, setHasGoalkeeper] = useState(initialHasGoalkeeper ?? true);
   const [formationName, setFormationName] = useState(initialFormationName ?? "");
   const [dragging, setDragging] = useState<number | null>(null);
@@ -108,7 +113,17 @@ export default function FormationBuilderSheet({
           <input
             type="checkbox"
             checked={hasGoalkeeper}
-            onChange={e => setHasGoalkeeper(e.target.checked)}
+            onChange={e => {
+              const checked = e.target.checked;
+              setHasGoalkeeper(checked);
+              if (checked) {
+                setPositions(prev => {
+                  const next = [...prev] as [number, number][];
+                  next[0] = [50, 90];
+                  return next;
+                });
+              }
+            }}
             className="w-4 h-4 accent-green-500"
           />
           <span className="text-sm text-zinc-200">Goalkeeper</span>
