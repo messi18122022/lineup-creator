@@ -320,7 +320,7 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
             onEditFormation={handleEditFormation}
           />
         </div>
-        <div className="absolute top-4 -right-7">
+        <div className="absolute top-[38px] -translate-y-1/2 -right-7">
           <button onClick={handleToggle}
             className="flex items-center justify-center w-7 h-10 bg-zinc-900 border border-l-0 border-zinc-700 rounded-r-lg text-green-500 hover:text-green-400 transition-colors cursor-pointer"
             title={sidebarOpen ? "Close sidebar" : "Open sidebar"}>
