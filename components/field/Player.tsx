@@ -56,9 +56,9 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
         />
       ) : (
         <span
-          onDoubleClick={onNameChange ? startEdit : undefined}
-          className={`text-xs font-semibold text-white rounded px-1 py-0.5 whitespace-nowrap bg-black/70 ${onNameChange ? "cursor-default" : "cursor-default"}`}
-          title={onNameChange ? "Double-click to edit" : undefined}
+          onClick={onNameChange ? startEdit : undefined}
+          className={`text-xs font-semibold text-white rounded px-1 py-0.5 whitespace-nowrap bg-black/70 ${onNameChange ? "cursor-pointer" : "cursor-default"}`}
+          title={onNameChange ? "Tap to edit" : undefined}
         >
           {name}
         </span>
