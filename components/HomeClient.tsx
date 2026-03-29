@@ -264,6 +264,16 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
 
   // ── Lineup handlers ───────────────────────────────────────────────────────
 
+  function handleCreateLineup() {
+    if (!selectedTeamId) return;
+    const team = teams.find(t => t.id === selectedTeamId);
+    const teamLineups = lineups.filter(l => l.teamId === selectedTeamId);
+    const name = `${team?.name ?? "Lineup"} ${teamLineups.length + 1}`;
+    const newLineup: SavedLineup = { id: crypto.randomUUID(), name, teamId: selectedTeamId };
+    setLineups(prev => [...prev, newLineup]);
+    setSelectedLineupId(newLineup.id);
+  }
+
   function handleRenameLineup(lineupId: string, name: string) {
     setLineups(prev => prev.map(l => l.id === lineupId ? { ...l, name } : l));
   }
@@ -466,6 +476,7 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
             onDeleteTeam={handleDeleteTeam}
             lineups={lineups} selectedLineupId={selectedLineupId}
             onSelectLineup={setSelectedLineupId}
+            onCreateLineup={handleCreateLineup}
             onRenameLineup={handleRenameLineup}
             onDeleteLineup={handleDeleteLineup}
           />

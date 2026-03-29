@@ -12,6 +12,7 @@ interface LineupCardProps {
   onSelect: (lineupId: string) => void;
   onRename: (lineupId: string, name: string) => void;
   onDelete: (lineupId: string) => void;
+  onCreateLineup: () => void;
 }
 
 function LineupRow({ lineup, isSelected, onSelect, onRename, onDelete }: {
@@ -69,7 +70,7 @@ function LineupRow({ lineup, isSelected, onSelect, onRename, onDelete }: {
   );
 }
 
-function LineupOptions({ lineups, selectedLineupId, onSelect, onRename, onDelete }: Omit<LineupCardProps, "selectedTeamId">) {
+function LineupOptions({ lineups, selectedLineupId, onSelect, onRename, onDelete, onCreateLineup }: Omit<LineupCardProps, "selectedTeamId">) {
   const close = useAccordionClose();
   return (
     <>
@@ -83,11 +84,17 @@ function LineupOptions({ lineups, selectedLineupId, onSelect, onRename, onDelete
           onDelete={() => onDelete(lineup.id)}
         />
       ))}
+      <button
+        onClick={() => { onCreateLineup(); close(); }}
+        className="w-full rounded-lg px-3 py-2 text-sm font-semibold transition-colors text-left bg-zinc-800 text-zinc-400 hover:bg-zinc-700 border border-dashed border-zinc-600"
+      >
+        + New lineup
+      </button>
     </>
   );
 }
 
-export default function LineupCard({ lineups, selectedLineupId, selectedTeamId, onSelect, onRename, onDelete }: LineupCardProps) {
+export default function LineupCard({ lineups, selectedLineupId, selectedTeamId, onSelect, onRename, onDelete, onCreateLineup }: LineupCardProps) {
   const teamLineups = lineups.filter(l => l.teamId === selectedTeamId);
   const selectedLabel = selectedLineupId ? (teamLineups.find(l => l.id === selectedLineupId)?.name ?? "—") : "—";
 
@@ -112,6 +119,7 @@ export default function LineupCard({ lineups, selectedLineupId, selectedTeamId, 
         onSelect={onSelect}
         onRename={onRename}
         onDelete={onDelete}
+        onCreateLineup={onCreateLineup}
       />
     </AccordionCard>
   );

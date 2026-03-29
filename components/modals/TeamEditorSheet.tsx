@@ -40,7 +40,8 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
     setRows(prev => {
       const updated = prev.map(r => r.id === id ? { ...r, [field]: value } : r);
       const last = updated[updated.length - 1];
-      if (!isRowEmpty(last)) {
+      const filledCount = updated.filter(r => !isRowEmpty(r)).length;
+      if (!isRowEmpty(last) && filledCount < 30) {
         const lastNum = [...updated].reverse().find(r => r.number)?.number;
         const nextNum = lastNum ? String(parseInt(lastNum) + 1) : String(updated.length + 1);
         updated.push(emptyRow(nextNum));

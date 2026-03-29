@@ -36,6 +36,7 @@ interface SidebarProps {
   onSelectLineup: (lineupId: string) => void;
   onRenameLineup: (lineupId: string, name: string) => void;
   onDeleteLineup: (lineupId: string) => void;
+  onCreateLineup: () => void;
 }
 
 export default function Sidebar({
@@ -44,7 +45,7 @@ export default function Sidebar({
   onCreateMode, onAddFormation, onRenameMode, onDeleteMode,
   onRenameFormation, onDeleteFormation, onEditFormation,
   teams, selectedTeamId, onSelectTeam, onCreateTeam, onEditTeam, onDeleteTeam,
-  lineups, selectedLineupId, onSelectLineup, onRenameLineup, onDeleteLineup,
+  lineups, selectedLineupId, onSelectLineup, onRenameLineup, onDeleteLineup, onCreateLineup,
 }: SidebarProps) {
   return (
     <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5 overflow-y-auto">
@@ -66,6 +67,7 @@ export default function Sidebar({
         selectedLineupId={selectedLineupId}
         selectedTeamId={selectedTeamId}
         onSelect={onSelectLineup}
+        onCreateLineup={onCreateLineup}
         onRename={onRenameLineup}
         onDelete={onDeleteLineup}
       />
