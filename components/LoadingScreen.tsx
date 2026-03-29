@@ -1,5 +1,7 @@
 "use client";
 
+export const WAVE_MS = 1000;
+
 const LINEUP = "Lineup".split("");
 const CREATOR = "Creator".split("");
 const ALL_CHARS = [...LINEUP, " ", ...CREATOR];
@@ -8,7 +10,7 @@ export default function LoadingScreen() {
   return (
     <div className="h-screen bg-zinc-950 flex items-center justify-center">
       <div className="flex items-center select-none">
-        {ALL_CHARS.map((char, i) => (
+        {ALL_CHARS.map((char, i) =>
           char === " " ? (
             <span key={i} className="w-3" />
           ) : (
@@ -17,14 +19,14 @@ export default function LoadingScreen() {
               className={`text-3xl font-bold tracking-tight ${i < LINEUP.length ? "text-green-500" : "text-zinc-200"}`}
               style={{
                 display: "inline-block",
-                animation: "lcWave 1.4s ease-in-out infinite",
-                animationDelay: `${i * 0.07}s`,
+                animation: `lcWave ${WAVE_MS}ms ease-in-out infinite`,
+                animationDelay: `${i * 0.05}s`,
               }}
             >
               {char}
             </span>
           )
-        ))}
+        )}
       </div>
       <style>{`
         @keyframes lcWave {

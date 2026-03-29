@@ -16,7 +16,7 @@ import {
   ModeOverrides, FormationOverrides,
 } from "@/lib/customModes";
 import { loadUserData, saveUserData } from "@/lib/userDataStorage";
-import LoadingScreen from "@/components/LoadingScreen";
+import LoadingScreen, { WAVE_MS } from "@/components/LoadingScreen";
 
 const BUILTIN_MODES: GameMode[] = ["11v11", "4+1", "5+1"];
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
@@ -60,6 +60,8 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
   const [editFormationId, setEditFormationId] = useState<string | null>(null);
   const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [showContent, setShowContent] = useState(false);
+  const mountTime = useRef(Date.now());
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load: only for Pro users — free/logged-out users always see default built-ins
@@ -101,6 +103,16 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
   }, [userId, isPro, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
+
+  // Wait for the next full wave cycle before showing content
+  useEffect(() => {
+    if (!dataLoaded) return;
+    const elapsed = Date.now() - mountTime.current;
+    const nextCycle = Math.max(1, Math.ceil(elapsed / WAVE_MS));
+    const delay = nextCycle * WAVE_MS - elapsed;
+    const t = setTimeout(() => setShowContent(true), delay);
+    return () => clearTimeout(t);
+  }, [dataLoaded]);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
@@ -341,10 +353,11 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
 
   // ── Render ────────────────────────────────────────────────────────────────
 
-  if (!dataLoaded) return <LoadingScreen />;
+  if (!showContent) return <LoadingScreen />;
 
   return (
-    <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
+    <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100" style={{ animation: "lcFadeIn 0.4s ease-out forwards" }}>
+      <style>{`@keyframes lcFadeIn { from { opacity: 0; } to { opacity: 1; } }`}</style>
       {sidebarOpen && (
         <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={handleToggle} />
       )}
