@@ -19,5 +19,5 @@ export default async function HomePage() {
     isPro = data?.is_pro ?? false;
   }
 
-  return <HomeClientDynamic userEmail={user?.email ?? null} isPro={isPro} />;
+  return <HomeClientDynamic userEmail={user?.email ?? null} isPro={isPro} userId={user?.id ?? null} />;
 }

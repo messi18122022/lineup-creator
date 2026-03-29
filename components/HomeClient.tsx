@@ -15,6 +15,7 @@ import {
   loadFormationOverrides, saveFormationOverrides,
   ModeOverrides, FormationOverrides,
 } from "@/lib/customModes";
+import { loadUserData, saveUserData } from "@/lib/userDataStorage";
 
 const BUILTIN_MODES: GameMode[] = ["11v11", "4+1", "5+1"];
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
@@ -22,6 +23,7 @@ const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 interface HomeClientProps {
   userEmail: string | null;
   isPro: boolean;
+  userId: string | null;
 }
 
 function SidebarToggleIcon({ open }: { open: boolean }) {
@@ -37,7 +39,7 @@ function SidebarToggleIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
+export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps) {
   const [mode, setMode] = useState<string>("11v11");
   const [formation, setFormation] = useState<string>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
@@ -56,13 +58,52 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [showAddFormation, setShowAddFormation] = useState(false);
   const [editFormationId, setEditFormationId] = useState<string | null>(null);
   const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load: Supabase first (logged-in), localStorage as fallback / migration source
   useEffect(() => {
-    setCustomModes(loadCustomModes());
-    setExtraFormations(loadExtraFormations());
-    setModeOverrides(loadModeOverrides());
-    setFormationOverrides(loadFormationOverrides());
-  }, []);
+    if (!userId) {
+      setCustomModes(loadCustomModes());
+      setExtraFormations(loadExtraFormations());
+      setModeOverrides(loadModeOverrides());
+      setFormationOverrides(loadFormationOverrides());
+      setDataLoaded(true);
+      return;
+    }
+    loadUserData(userId).then(remoteData => {
+      if (remoteData) {
+        setCustomModes(remoteData.custom_modes);
+        setExtraFormations(remoteData.extra_formations);
+        setModeOverrides(remoteData.mode_overrides);
+        setFormationOverrides(remoteData.formation_overrides);
+      } else {
+        // First login on this device: migrate localStorage data to Supabase
+        const local = {
+          custom_modes: loadCustomModes(),
+          extra_formations: loadExtraFormations(),
+          mode_overrides: loadModeOverrides(),
+          formation_overrides: loadFormationOverrides(),
+        };
+        setCustomModes(local.custom_modes);
+        setExtraFormations(local.extra_formations);
+        setModeOverrides(local.mode_overrides);
+        setFormationOverrides(local.formation_overrides);
+        saveUserData(userId, local);
+      }
+      setDataLoaded(true);
+    });
+  }, [userId]);
+
+  // Save to Supabase (debounced) whenever data changes, after initial load
+  useEffect(() => {
+    if (!userId || !dataLoaded) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveUserData(userId, { custom_modes: customModes, extra_formations: extraFormations, mode_overrides: modeOverrides, formation_overrides: formationOverrides });
+    }, 500);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [userId, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);

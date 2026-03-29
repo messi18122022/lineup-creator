@@ -1,0 +1,24 @@
+-- User data table: stores custom modes, formations, and overrides per user
+create table if not exists public.user_data (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  custom_modes jsonb not null default '[]',
+  extra_formations jsonb not null default '{}',
+  mode_overrides jsonb not null default '{"renames": {}, "deleted": []}',
+  formation_overrides jsonb not null default '{"renames": {}, "deleted": [], "edits": {}}',
+  updated_at timestamptz not null default now()
+);
+
+-- RLS: users can only read and write their own row
+alter table public.user_data enable row level security;
+
+create policy "Users can read own data"
+  on public.user_data for select
+  using (auth.uid() = user_id);
+
+create policy "Users can upsert own data"
+  on public.user_data for insert
+  with check (auth.uid() = user_id);
+
+create policy "Users can update own data"
+  on public.user_data for update
+  using (auth.uid() = user_id);
