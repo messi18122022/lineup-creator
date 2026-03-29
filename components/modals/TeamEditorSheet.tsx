@@ -124,6 +124,22 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
           placeholder="Team name"
           className="flex-1 text-xl font-bold bg-transparent text-zinc-100 placeholder-zinc-600 outline-none border-b-2 border-transparent focus:border-green-500 transition-colors pb-0.5"
         />
+        {selectMode ? (
+          <button
+            onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
+            className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Cancel
+          </button>
+        ) : (
+          <button
+            onClick={() => setSelectMode(true)}
+            disabled={filledRows.length === 0}
+            className="text-sm text-green-500 hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Select
+          </button>
+        )}
         <button
           onClick={onClose}
           className="text-zinc-400 hover:text-zinc-200 transition-colors text-lg leading-none"
@@ -138,23 +154,9 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
           <thead className="sticky top-0 bg-zinc-900 z-10">
             <tr>
               {selectMode && <th className="w-10" />}
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 w-24">#</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 w-20">#</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">First Name</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Last Name</th>
-              <th className="px-4 py-3 text-right">
-                {selectMode ? (
-                  <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
-                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
-                    Cancel
-                  </button>
-                ) : (
-                  <button onClick={() => setSelectMode(true)}
-                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
-                    disabled={filledRows.length === 0}>
-                    Select
-                  </button>
-                )}
-              </th>
             </tr>
           </thead>
           <tbody>
