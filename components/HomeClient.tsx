@@ -15,6 +15,8 @@ import {
   loadFormationOverrides, saveFormationOverrides,
   ModeOverrides, FormationOverrides,
 } from "@/lib/customModes";
+import { loadUserData, saveUserData } from "@/lib/userDataStorage";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const BUILTIN_MODES: GameMode[] = ["11v11", "4+1", "5+1"];
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
@@ -22,6 +24,7 @@ const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
 interface HomeClientProps {
   userEmail: string | null;
   isPro: boolean;
+  userId: string | null;
 }
 
 function SidebarToggleIcon({ open }: { open: boolean }) {
@@ -37,7 +40,7 @@ function SidebarToggleIcon({ open }: { open: boolean }) {
   );
 }
 
-export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
+export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps) {
   const [mode, setMode] = useState<string>("11v11");
   const [formation, setFormation] = useState<string>("4-3-3");
   const [playerNames, setPlayerNames] = useState<string[]>([...DEFAULT_NAMES]);
@@ -56,13 +59,48 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   const [showAddFormation, setShowAddFormation] = useState(false);
   const [editFormationId, setEditFormationId] = useState<string | null>(null);
   const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
+  const [dataLoaded, setDataLoaded] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load: only for Pro users — free/logged-out users always see default built-ins
   useEffect(() => {
-    setCustomModes(loadCustomModes());
-    setExtraFormations(loadExtraFormations());
-    setModeOverrides(loadModeOverrides());
-    setFormationOverrides(loadFormationOverrides());
-  }, []);
+    if (!userId || !isPro) {
+      setDataLoaded(true);
+      return;
+    }
+    loadUserData(userId).then(remoteData => {
+      if (remoteData) {
+        setCustomModes(remoteData.custom_modes);
+        setExtraFormations(remoteData.extra_formations);
+        setModeOverrides(remoteData.mode_overrides);
+        setFormationOverrides(remoteData.formation_overrides);
+      }
+      setDataLoaded(true);
+    });
+  }, [userId, isPro]);
+
+  // After data loads, validate the active mode — it might have been deleted
+  useEffect(() => {
+    if (!dataLoaded) return;
+    const availableModes = [
+      ...BUILTIN_MODES.filter(m => !modeOverrides.deleted.includes(m)),
+      ...customModes.map(m => m.id),
+    ];
+    if (!availableModes.includes(mode)) {
+      handleModeChange(availableModes[0] ?? "");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoaded]);
+
+  // Save to Supabase (debounced) whenever data changes, after initial load
+  useEffect(() => {
+    if (!userId || !isPro || !dataLoaded) return;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveUserData(userId, { custom_modes: customModes, extra_formations: extraFormations, mode_overrides: modeOverrides, formation_overrides: formationOverrides });
+    }, 500);
+    return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
+  }, [userId, isPro, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
@@ -302,6 +340,8 @@ export default function HomeClient({ userEmail, isPro }: HomeClientProps) {
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  if (!dataLoaded) return <LoadingScreen />;
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">

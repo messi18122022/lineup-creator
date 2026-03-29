@@ -10,8 +10,9 @@ const HomeClient = dynamic(() => import("@/components/HomeClient"), {
 interface Props {
   userEmail: string | null;
   isPro: boolean;
+  userId: string | null;
 }
 
-export default function HomeClientDynamic({ userEmail, isPro }: Props) {
-  return <HomeClient userEmail={userEmail} isPro={isPro} />;
+export default function HomeClientDynamic({ userEmail, isPro, userId }: Props) {
+  return <HomeClient userEmail={userEmail} isPro={isPro} userId={userId} />;
 }
