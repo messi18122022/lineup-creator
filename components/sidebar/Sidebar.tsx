@@ -1,7 +1,7 @@
 import ModeCard, { ModeItem } from "./ModeCard";
 import FormationCard, { FormationItem } from "./FormationCard";
 import UserButton from "./UserButton";
-import { logout } from "@/app/actions/auth";
+import LogoutButton from "./LogoutButton";
 
 interface SidebarProps {
   mode: string;
@@ -62,12 +62,9 @@ export default function Sidebar({
               <span className="text-sm font-bold text-white uppercase">{userEmail![0]}</span>
             </div>
             <span className="text-sm font-semibold text-green-400 uppercase tracking-wider">Pro</span>
-            <form action={logout} className="ml-auto">
-              <button type="submit"
-                className="h-8 px-3 bg-red-700 hover:bg-red-600 transition-colors rounded text-sm font-semibold text-white">
-                Logout
-              </button>
-            </form>
+            <div className="ml-auto">
+              <LogoutButton />
+            </div>
           </div>
         ) : (
           <>

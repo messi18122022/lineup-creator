@@ -61,13 +61,9 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
   const [dataLoaded, setDataLoaded] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Load: Supabase first (logged-in), localStorage as fallback / migration source
+  // Load: only for Pro users — free/logged-out users always see default built-ins
   useEffect(() => {
-    if (!userId) {
-      setCustomModes(loadCustomModes());
-      setExtraFormations(loadExtraFormations());
-      setModeOverrides(loadModeOverrides());
-      setFormationOverrides(loadFormationOverrides());
+    if (!userId || !isPro) {
       setDataLoaded(true);
       return;
     }
@@ -77,33 +73,33 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
         setExtraFormations(remoteData.extra_formations);
         setModeOverrides(remoteData.mode_overrides);
         setFormationOverrides(remoteData.formation_overrides);
-      } else {
-        // First login on this device: migrate localStorage data to Supabase
-        const local = {
-          custom_modes: loadCustomModes(),
-          extra_formations: loadExtraFormations(),
-          mode_overrides: loadModeOverrides(),
-          formation_overrides: loadFormationOverrides(),
-        };
-        setCustomModes(local.custom_modes);
-        setExtraFormations(local.extra_formations);
-        setModeOverrides(local.mode_overrides);
-        setFormationOverrides(local.formation_overrides);
-        saveUserData(userId, local);
       }
       setDataLoaded(true);
     });
-  }, [userId]);
+  }, [userId, isPro]);
+
+  // After data loads, validate the active mode — it might have been deleted
+  useEffect(() => {
+    if (!dataLoaded) return;
+    const availableModes = [
+      ...BUILTIN_MODES.filter(m => !modeOverrides.deleted.includes(m)),
+      ...customModes.map(m => m.id),
+    ];
+    if (!availableModes.includes(mode)) {
+      handleModeChange(availableModes[0] ?? "");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataLoaded]);
 
   // Save to Supabase (debounced) whenever data changes, after initial load
   useEffect(() => {
-    if (!userId || !dataLoaded) return;
+    if (!userId || !isPro || !dataLoaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
       saveUserData(userId, { custom_modes: customModes, extra_formations: extraFormations, mode_overrides: modeOverrides, formation_overrides: formationOverrides });
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [userId, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
+  }, [userId, isPro, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
 
   useEffect(() => {
     hintTimer.current = setTimeout(() => setHintVisible(false), 6000);
