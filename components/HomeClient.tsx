@@ -16,6 +16,7 @@ import {
   ModeOverrides, FormationOverrides,
 } from "@/lib/customModes";
 import { loadUserData, saveUserData } from "@/lib/userDataStorage";
+import LoadingScreen from "@/components/LoadingScreen";
 
 const BUILTIN_MODES: GameMode[] = ["11v11", "4+1", "5+1"];
 const DEFAULT_NAMES = Array.from({ length: 11 }, (_, i) => `Player ${i + 1}`);
@@ -339,6 +340,8 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
+
+  if (!dataLoaded) return <LoadingScreen />;
 
   return (
     <div className="flex h-screen overflow-hidden bg-zinc-950 text-zinc-100">
