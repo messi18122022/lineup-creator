@@ -49,10 +49,11 @@ export default function ThreeDotMenu({ items, anchorRef, locked }: { items: Menu
       </button>
       {open && typeof document !== "undefined" && createPortal(
         <div
-          style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999 }}
+          style={{ position: "fixed", top: pos.top, right: pos.right, zIndex: 9999, transformOrigin: "top", animation: "tdOpen 180ms ease-out forwards" }}
           className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-xl py-1 w-40"
           onMouseDown={e => e.stopPropagation()}
         >
+          <style>{`@keyframes tdOpen { from { transform: scaleY(0.8); opacity: 0; } to { transform: scaleY(1); opacity: 1; } }`}</style>
           {items.map(item => (
             <button
               key={item.label}
