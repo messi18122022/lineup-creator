@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Team, TeamPlayer, NameFormat } from "@/types";
 
 interface RowData {
@@ -35,6 +35,7 @@ function initRows(team?: Team): RowData[] {
 const NAME_FORMAT_OPTIONS: { value: NameFormat; label: string; example: string }[] = [
   { value: "firstName",        label: "First name only",        example: "John" },
   { value: "firstLast",        label: "First + last initial",   example: "John D." },
+  { value: "fullName",         label: "Full name",              example: "John Doe" },
   { value: "firstInitialLast", label: "Initial + last name",    example: "J. Doe" },
   { value: "lastOnly",         label: "Last name only",         example: "Doe" },
 ];
@@ -49,6 +50,33 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
   const [teamName, setTeamName] = useState(team?.name ?? "");
   const [rows, setRows] = useState<RowData[]>(() => initRows(team));
   const [nameFormat, setNameFormat] = useState<NameFormat>(team?.nameFormat ?? "lastOnly");
+  const [selectMode, setSelectMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const filledRows = useMemo(() => rows.filter(r => !isUntouched(r)), [rows]);
+
+  function toggleSelect(id: string) {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function handleRemove() {
+    setRows(prev => {
+      const kept = prev.filter(r => !selectedIds.has(r.id));
+      // Ensure trailing empty row
+      const last = kept[kept.length - 1];
+      if (!last || !isUntouched(last)) {
+        const lastNum = [...kept].reverse().find(r => r.number)?.number;
+        kept.push(emptyRow(lastNum ? String(parseInt(lastNum) + 1) : ""));
+      }
+      return kept;
+    });
+    setSelectedIds(new Set());
+    setSelectMode(false);
+  }
 
   function handleCellChange(id: string, field: "number" | "firstName" | "lastName", value: string) {
     setRows(prev => {
@@ -109,14 +137,41 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
         <table className="w-full border-collapse">
           <thead className="sticky top-0 bg-zinc-900 z-10">
             <tr>
+              {selectMode && <th className="w-10" />}
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 w-24">#</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">First Name</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Last Name</th>
+              <th className="px-4 py-3 text-right">
+                {selectMode ? (
+                  <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
+                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
+                    Cancel
+                  </button>
+                ) : (
+                  <button onClick={() => setSelectMode(true)}
+                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                    disabled={filledRows.length === 0}>
+                    Select
+                  </button>
+                )}
+              </th>
             </tr>
           </thead>
           <tbody>
             {rows.map(row => (
-              <tr key={row.id} className="border-t border-zinc-800/50">
+              <tr key={row.id} className={`border-t border-zinc-800/50 ${selectMode && selectedIds.has(row.id) ? "bg-zinc-800/60" : ""}`}>
+                {selectMode && (
+                  <td className="pl-4 py-2">
+                    {!isUntouched(row) && (
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(row.id)}
+                        onChange={() => toggleSelect(row.id)}
+                        className="w-4 h-4 accent-green-500 cursor-pointer"
+                      />
+                    )}
+                  </td>
+                )}
                 <td className="px-4 py-2">
                   <input
                     value={row.number}
@@ -170,6 +225,15 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
           </div>
         </div>
 
+        {selectMode && (
+          <button
+            onClick={handleRemove}
+            disabled={selectedIds.size === 0}
+            className="w-full bg-red-700 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed transition-colors rounded-lg px-4 py-3 text-sm font-semibold text-white"
+          >
+            Remove{selectedIds.size > 0 ? ` (${selectedIds.size})` : ""}
+          </button>
+        )}
         <button
           onClick={handleSave}
           className="w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-sm font-semibold text-white"

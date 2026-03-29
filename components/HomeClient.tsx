@@ -216,6 +216,7 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
       switch (fmt) {
         case "firstName":        return f || `#${p.number}`;
         case "firstLast":        return l ? `${f} ${li}`.trim() : f || `#${p.number}`;
+        case "fullName":         return [f, l].filter(Boolean).join(" ") || `#${p.number}`;
         case "firstInitialLast": return f ? `${fi} ${l}`.trim() : l || `#${p.number}`;
         case "lastOnly":         return l || f || `#${p.number}`;
       }

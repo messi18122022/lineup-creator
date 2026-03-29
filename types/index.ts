@@ -44,7 +44,7 @@ export interface TeamPlayer {
   lastName: string;
 }
 
-export type NameFormat = "firstName" | "firstLast" | "firstInitialLast" | "lastOnly";
+export type NameFormat = "firstName" | "firstLast" | "firstInitialLast" | "lastOnly" | "fullName";
 
 export interface Team {
   id: string;
