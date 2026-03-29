@@ -9,7 +9,7 @@ interface FieldProps {
   formation: string;
   positions?: [number, number][];
   playerNames: string[];
-  onNameChange: (index: number, name: string) => void;
+  onNameChange?: (index: number, name: string) => void;
 }
 
 export default function Field({ formation, positions: customPositions, playerNames, onNameChange }: FieldProps) {

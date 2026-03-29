@@ -2,6 +2,9 @@ import ModeCard, { ModeItem } from "./ModeCard";
 import FormationCard, { FormationItem } from "./FormationCard";
 import UserButton from "./UserButton";
 import LogoutButton from "./LogoutButton";
+import TeamCard from "./TeamCard";
+import LineupCard from "./LineupCard";
+import { Team, SavedLineup } from "@/types";
 
 interface SidebarProps {
   mode: string;
@@ -20,6 +23,20 @@ interface SidebarProps {
   onRenameFormation: (id: string, name: string) => void;
   onDeleteFormation: (id: string) => void;
   onEditFormation: (id: string) => void;
+  // Team
+  teams: Team[];
+  selectedTeamId: string | null;
+  onSelectTeam: (teamId: string | null) => void;
+  onCreateTeam: () => void;
+  onEditTeam: (team: Team) => void;
+  onDeleteTeam: (teamId: string) => void;
+  // Lineup
+  lineups: SavedLineup[];
+  selectedLineupId: string | null;
+  onSelectLineup: (lineupId: string) => void;
+  onRenameLineup: (lineupId: string, name: string) => void;
+  onDeleteLineup: (lineupId: string) => void;
+  onCreateLineup: () => void;
 }
 
 export default function Sidebar({
@@ -27,13 +44,33 @@ export default function Sidebar({
   userEmail, isPro, modes, formations, selectedFormationName,
   onCreateMode, onAddFormation, onRenameMode, onDeleteMode,
   onRenameFormation, onDeleteFormation, onEditFormation,
+  teams, selectedTeamId, onSelectTeam, onCreateTeam, onEditTeam, onDeleteTeam,
+  lineups, selectedLineupId, onSelectLineup, onRenameLineup, onDeleteLineup, onCreateLineup,
 }: SidebarProps) {
   return (
-    <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5">
-      <h1 className="text-sm font-bold uppercase tracking-widest text-center bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3">
+    <aside className="w-60 min-w-60 h-full bg-zinc-900 border-r border-zinc-700 flex flex-col gap-4 p-5 overflow-y-auto">
+      <h1 className="text-sm font-bold uppercase tracking-widest text-center bg-zinc-800 border border-zinc-700 rounded-lg py-2 px-3 flex-shrink-0">
         <span className="text-green-500">Lineup</span>
         <span className="text-zinc-200"> Creator</span>
       </h1>
+      <TeamCard
+        teams={teams}
+        selectedTeamId={selectedTeamId}
+        onSelect={onSelectTeam}
+        onCreateTeam={onCreateTeam}
+        onEditTeam={onEditTeam}
+        onDeleteTeam={onDeleteTeam}
+        isPro={isPro}
+      />
+      <LineupCard
+        lineups={lineups}
+        selectedLineupId={selectedLineupId}
+        selectedTeamId={selectedTeamId}
+        onSelect={onSelectLineup}
+        onCreateLineup={onCreateLineup}
+        onRename={onRenameLineup}
+        onDelete={onDeleteLineup}
+      />
       <ModeCard
         value={mode} onChange={onModeChange} isPro={isPro} modes={modes}
         onCreateMode={onCreateMode} onRenameMode={onRenameMode} onDeleteMode={onDeleteMode}
@@ -44,7 +81,7 @@ export default function Sidebar({
         onAddFormation={onAddFormation} onRenameFormation={onRenameFormation}
         onDeleteFormation={onDeleteFormation} onEditFormation={onEditFormation}
       />
-      <div className="mt-auto flex flex-col gap-2">
+      <div className="mt-auto flex flex-col gap-2 flex-shrink-0">
         {!userEmail ? (
           <>
             <a href="/auth?mode=login"

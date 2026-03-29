@@ -6,7 +6,8 @@ import Field from "@/components/field/Field";
 import CreateModeDialog from "@/components/modals/CreateModeDialog";
 import AddFormationDialog from "@/components/modals/AddFormationDialog";
 import FormationBuilderSheet from "@/components/modals/FormationBuilderSheet";
-import { GameMode, CustomMode, CustomFormation, FormationKey } from "@/types";
+import { GameMode, CustomMode, CustomFormation, FormationKey, Team, SavedLineup } from "@/types";
+import TeamEditorSheet from "@/components/modals/TeamEditorSheet";
 import { DEFAULT_FORMATION_FOR_MODE, FORMATIONS_BY_MODE, FORMATIONS } from "@/lib/formations";
 import {
   loadCustomModes, saveCustomModes,
@@ -14,6 +15,7 @@ import {
   loadModeOverrides, saveModeOverrides,
   loadFormationOverrides, saveFormationOverrides,
   ModeOverrides, FormationOverrides,
+  PLAYER_COUNT_FOR_BUILTIN_MODE,
 } from "@/lib/customModes";
 import { loadUserData, saveUserData } from "@/lib/userDataStorage";
 import LoadingScreen, { WAVE_MS } from "@/components/LoadingScreen";
@@ -59,6 +61,13 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
   const [showAddFormation, setShowAddFormation] = useState(false);
   const [editFormationId, setEditFormationId] = useState<string | null>(null);
   const [addFormationPlayerCount, setAddFormationPlayerCount] = useState(11);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [lineups, setLineups] = useState<SavedLineup[]>([]);
+  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
+  const [selectedLineupId, setSelectedLineupId] = useState<string | null>(null);
+  const [showTeamEditor, setShowTeamEditor] = useState(false);
+  const [editingTeam, setEditingTeam] = useState<Team | undefined>(undefined);
+
   const [dataLoaded, setDataLoaded] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const mountTime = useRef(Date.now());
@@ -76,6 +85,8 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
         setExtraFormations(remoteData.extra_formations);
         setModeOverrides(remoteData.mode_overrides);
         setFormationOverrides(remoteData.formation_overrides);
+        setTeams(remoteData.teams ?? []);
+        setLineups(remoteData.lineups ?? []);
       }
       setDataLoaded(true);
     });
@@ -99,10 +110,10 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
     if (!userId || !isPro || !dataLoaded) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
-      saveUserData(userId, { custom_modes: customModes, extra_formations: extraFormations, mode_overrides: modeOverrides, formation_overrides: formationOverrides });
+      saveUserData(userId, { custom_modes: customModes, extra_formations: extraFormations, mode_overrides: modeOverrides, formation_overrides: formationOverrides, teams, lineups });
     }, 500);
     return () => { if (saveTimer.current) clearTimeout(saveTimer.current); };
-  }, [userId, isPro, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides]);
+  }, [userId, isPro, dataLoaded, customModes, extraFormations, modeOverrides, formationOverrides, teams, lineups]);
 
   // Wait for the next full wave cycle before showing content
   useEffect(() => {
@@ -187,6 +198,100 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
 
   function handleNameChange(index: number, name: string) {
     setPlayerNames(prev => { const next = [...prev]; next[index] = name; return next; });
+  }
+
+  // ── Active player names (from team or manual) ─────────────────────────────
+
+  const activePlayerNames = useMemo(() => {
+    if (!selectedTeamId) return playerNames;
+    const team = teams.find(t => t.id === selectedTeamId);
+    if (!team) return playerNames;
+    const cm = customModes.find(m => m.id === mode);
+    const count = cm?.playerCount ?? PLAYER_COUNT_FOR_BUILTIN_MODE[mode as GameMode] ?? 11;
+    const fmt = team.nameFormat ?? "lastName";
+    return team.players.slice(0, count).map(p => {
+      const f = p.firstName, l = p.lastName;
+      const fi = f ? f[0] + "." : "";
+      const li = l ? l[0] + "." : "";
+      switch (fmt) {
+        case "firstName":        return f || `#${p.number}`;
+        case "firstLast":        return l ? `${f} ${li}`.trim() : f || `#${p.number}`;
+        case "fullName":         return [f, l].filter(Boolean).join(" ") || `#${p.number}`;
+        case "firstInitialLast": return f ? `${fi} ${l}`.trim() : l || `#${p.number}`;
+        case "lastOnly":         return l || f || `#${p.number}`;
+      }
+    });
+  }, [selectedTeamId, teams, playerNames, mode, customModes]);
+
+  // ── Team handlers ─────────────────────────────────────────────────────────
+
+  function handleSelectTeam(teamId: string | null) {
+    setSelectedTeamId(teamId);
+    if (!teamId) { setSelectedLineupId(null); return; }
+    const first = lineups.find(l => l.teamId === teamId);
+    setSelectedLineupId(first?.id ?? null);
+  }
+
+  function handleSaveTeam(team: Team) {
+    const isNew = !teams.find(t => t.id === team.id);
+    const updatedTeams = isNew
+      ? [...teams, team]
+      : teams.map(t => t.id === team.id ? team : t);
+    setTeams(updatedTeams);
+
+    let updatedLineups = lineups;
+    if (isNew) {
+      const defaultLineup: SavedLineup = {
+        id: crypto.randomUUID(),
+        name: `${team.name} 1`,
+        teamId: team.id,
+      };
+      updatedLineups = [...lineups, defaultLineup];
+      setLineups(updatedLineups);
+      setSelectedTeamId(team.id);
+      setSelectedLineupId(defaultLineup.id);
+    }
+
+    setShowTeamEditor(false);
+    setEditingTeam(undefined);
+  }
+
+  function handleDeleteTeam(teamId: string) {
+    setTeams(prev => prev.filter(t => t.id !== teamId));
+    setLineups(prev => prev.filter(l => l.teamId !== teamId));
+    if (selectedTeamId === teamId) { setSelectedTeamId(null); setSelectedLineupId(null); }
+  }
+
+  function handleOpenCreateTeam() {
+    setEditingTeam(undefined);
+    setShowTeamEditor(true);
+  }
+
+  function handleOpenEditTeam(team: Team) {
+    setEditingTeam(team);
+    setShowTeamEditor(true);
+  }
+
+  // ── Lineup handlers ───────────────────────────────────────────────────────
+
+  function handleCreateLineup() {
+    if (!selectedTeamId) return;
+    const team = teams.find(t => t.id === selectedTeamId);
+    const teamLineups = lineups.filter(l => l.teamId === selectedTeamId);
+    const name = `${team?.name ?? "Lineup"} ${teamLineups.length + 1}`;
+    const newLineup: SavedLineup = { id: crypto.randomUUID(), name, teamId: selectedTeamId };
+    setLineups(prev => [...prev, newLineup]);
+    setSelectedLineupId(newLineup.id);
+  }
+
+  function handleRenameLineup(lineupId: string, name: string) {
+    setLineups(prev => prev.map(l => l.id === lineupId ? { ...l, name } : l));
+  }
+
+  function handleDeleteLineup(lineupId: string) {
+    const remaining = lineups.filter(l => l.id !== lineupId && l.teamId === selectedTeamId);
+    setLineups(prev => prev.filter(l => l.id !== lineupId));
+    if (selectedLineupId === lineupId) setSelectedLineupId(remaining[0]?.id ?? null);
   }
 
   // ── Create mode ───────────────────────────────────────────────────────────
@@ -374,6 +479,16 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
             onRenameMode={handleRenameMode} onDeleteMode={handleDeleteMode}
             onRenameFormation={handleRenameFormation} onDeleteFormation={handleDeleteFormation}
             onEditFormation={handleEditFormation}
+            teams={teams} selectedTeamId={selectedTeamId}
+            onSelectTeam={handleSelectTeam}
+            onCreateTeam={handleOpenCreateTeam}
+            onEditTeam={handleOpenEditTeam}
+            onDeleteTeam={handleDeleteTeam}
+            lineups={lineups} selectedLineupId={selectedLineupId}
+            onSelectLineup={setSelectedLineupId}
+            onCreateLineup={handleCreateLineup}
+            onRenameLineup={handleRenameLineup}
+            onDeleteLineup={handleDeleteLineup}
           />
         </div>
         <div className="absolute bottom-4 md:bottom-auto md:top-[38px] md:-translate-y-1/2 -right-10 md:-right-7">
@@ -389,14 +504,22 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
       </div>
 
       <main className="flex flex-1 items-center justify-center p-4 overflow-hidden">
-        <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
-          <Field
-            formation={formation}
-            positions={currentPositions}
-            playerNames={playerNames}
-            onNameChange={handleNameChange}
+        {showTeamEditor ? (
+          <TeamEditorSheet
+            team={editingTeam}
+            onSave={handleSaveTeam}
+            onClose={() => { setShowTeamEditor(false); setEditingTeam(undefined); }}
           />
-        </div>
+        ) : (
+          <div className="w-full md:w-auto md:h-full" style={{ aspectRatio: "68 / 105" }}>
+            <Field
+              formation={formation}
+              positions={currentPositions}
+              playerNames={activePlayerNames}
+              onNameChange={selectedTeamId ? undefined : handleNameChange}
+            />
+          </div>
+        )}
       </main>
 
       {showCreateMode && (

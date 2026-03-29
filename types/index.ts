@@ -36,3 +36,25 @@ export interface CustomMode {
   playerCount: number;
   formations: CustomFormation[];
 }
+
+export interface TeamPlayer {
+  id: string;
+  number: string;
+  firstName: string;
+  lastName: string;
+}
+
+export type NameFormat = "firstName" | "firstLast" | "firstInitialLast" | "lastOnly" | "fullName";
+
+export interface Team {
+  id: string;
+  name: string;
+  players: TeamPlayer[];
+  nameFormat: NameFormat;
+}
+
+export interface SavedLineup {
+  id: string;
+  name: string;
+  teamId: string;
+}

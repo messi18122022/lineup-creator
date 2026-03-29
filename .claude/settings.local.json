@@ -17,7 +17,12 @@
       "Bash(git pull:*)",
       "Bash(git branch:*)",
       "Bash(npm list:*)",
-      "Bash(gh pr:*)"
+      "Bash(gh pr:*)",
+      "Bash(grep -r \"localStorage\\\\|sessionStorage\\\\|IndexedDB\" /Users/musamoin/Website/lineup-creator/app /Users/musamoin/Website/lineup-creator/components /Users/musamoin/Website/lineup-creator/lib --include=*.ts --include=*.tsx)",
+      "Bash(grep -r profiles /Users/musamoin/Website/lineup-creator/app /Users/musamoin/Website/lineup-creator/components /Users/musamoin/Website/lineup-creator/lib --include=*.ts --include=*.tsx)",
+      "Bash(find:*)",
+      "Bash(grep -r \"custom_modes\\\\|custom_formations\\\\|customMode\\\\|customFormation\" /Users/musamoin/Website/lineup-creator/app /Users/musamoin/Website/lineup-creator/lib --include=*.ts --include=*.tsx)",
+      "Bash(npx tsc:*)"
     ]
   }
 }
