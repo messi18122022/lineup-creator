@@ -6,6 +6,11 @@ import { logout } from "@/app/actions/auth";
 export default function LogoutButton() {
   const [showConfirm, setShowConfirm] = useState(false);
 
+  async function handleLogout() {
+    await logout();
+    window.location.href = "/";
+  }
+
   return (
     <>
       <button
@@ -28,14 +33,12 @@ export default function LogoutButton() {
               >
                 Cancel
               </button>
-              <form action={logout} className="flex-1">
-                <button
-                  type="submit"
-                  className="w-full h-9 rounded-lg bg-red-700 hover:bg-red-600 transition-colors text-sm font-semibold text-white"
-                >
-                  Log out
-                </button>
-              </form>
+              <button
+                onClick={handleLogout}
+                className="flex-1 h-9 rounded-lg bg-red-700 hover:bg-red-600 transition-colors text-sm font-semibold text-white"
+              >
+                Log out
+              </button>
             </div>
           </div>
         </div>
