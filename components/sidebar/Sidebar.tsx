@@ -48,7 +48,7 @@ export default function Sidebar({
         {!userEmail ? (
           <>
             <a href="/auth?mode=login"
-              className="block w-full text-center text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-2">
+              className="block w-full text-center text-xs text-zinc-400 hover:text-zinc-200 transition-colors py-2 bg-zinc-800 border border-zinc-700 rounded-lg">
               Sign in to Pro Account
             </a>
             <a href="/pro"
