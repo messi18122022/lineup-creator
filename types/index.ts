@@ -44,10 +44,13 @@ export interface TeamPlayer {
   lastName: string;
 }
 
+export type NameFormat = "firstName" | "firstLast" | "firstInitialLast" | "lastOnly";
+
 export interface Team {
   id: string;
   name: string;
   players: TeamPlayer[];
+  nameFormat: NameFormat;
 }
 
 export interface SavedLineup {

@@ -208,9 +208,18 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
     if (!team) return playerNames;
     const cm = customModes.find(m => m.id === mode);
     const count = cm?.playerCount ?? PLAYER_COUNT_FOR_BUILTIN_MODE[mode as GameMode] ?? 11;
-    return team.players.slice(0, count).map(p =>
-      [p.firstName, p.lastName].filter(Boolean).join(" ") || `#${p.number}`
-    );
+    const fmt = team.nameFormat ?? "lastName";
+    return team.players.slice(0, count).map(p => {
+      const f = p.firstName, l = p.lastName;
+      const fi = f ? f[0] + "." : "";
+      const li = l ? l[0] + "." : "";
+      switch (fmt) {
+        case "firstName":        return f || `#${p.number}`;
+        case "firstLast":        return l ? `${f} ${li}`.trim() : f || `#${p.number}`;
+        case "firstInitialLast": return f ? `${fi} ${l}`.trim() : l || `#${p.number}`;
+        case "lastOnly":         return l || f || `#${p.number}`;
+      }
+    });
   }, [selectedTeamId, teams, playerNames, mode, customModes]);
 
   // ── Team handlers ─────────────────────────────────────────────────────────
@@ -506,7 +515,7 @@ export default function HomeClient({ userEmail, isPro, userId }: HomeClientProps
               formation={formation}
               positions={currentPositions}
               playerNames={activePlayerNames}
-              onNameChange={handleNameChange}
+              onNameChange={selectedTeamId ? undefined : handleNameChange}
             />
           </div>
         )}

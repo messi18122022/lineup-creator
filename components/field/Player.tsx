@@ -8,7 +8,7 @@ interface PlayerProps {
   x: number;
   y: number;
   isGoalkeeper: boolean;
-  onNameChange: (index: number, name: string) => void;
+  onNameChange?: (index: number, name: string) => void;
 }
 
 export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }: PlayerProps) {
@@ -24,7 +24,7 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
 
   function commit() {
     const trimmed = draft.trim() || name;
-    onNameChange(index, trimmed);
+    onNameChange?.(index, trimmed);
     setEditing(false);
   }
 
@@ -56,10 +56,9 @@ export default function Player({ index, name, x, y, isGoalkeeper, onNameChange }
         />
       ) : (
         <span
-          onDoubleClick={startEdit}
-          className="text-xs font-semibold text-white rounded px-1 py-0.5
-            whitespace-nowrap cursor-default bg-black/70"
-          title="Double-click to edit"
+          onDoubleClick={onNameChange ? startEdit : undefined}
+          className={`text-xs font-semibold text-white rounded px-1 py-0.5 whitespace-nowrap bg-black/70 ${onNameChange ? "cursor-default" : "cursor-default"}`}
+          title={onNameChange ? "Double-click to edit" : undefined}
         >
           {name}
         </span>

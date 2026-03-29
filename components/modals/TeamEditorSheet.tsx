@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Team, TeamPlayer } from "@/types";
+import { Team, TeamPlayer, NameFormat } from "@/types";
 
 interface RowData {
   id: string;
@@ -14,7 +14,13 @@ function emptyRow(nextNum?: string): RowData {
   return { id: crypto.randomUUID(), number: nextNum ?? "", firstName: "", lastName: "" };
 }
 
-function isRowEmpty(row: RowData) {
+// A row is "untouched" if the user hasn't typed any name yet (number alone doesn't count)
+function isUntouched(row: RowData) {
+  return !row.firstName && !row.lastName;
+}
+
+// A row has no meaningful content at all
+function isBlank(row: RowData) {
   return !row.number && !row.firstName && !row.lastName;
 }
 
@@ -26,6 +32,13 @@ function initRows(team?: Team): RowData[] {
   return rows;
 }
 
+const NAME_FORMAT_OPTIONS: { value: NameFormat; label: string; example: string }[] = [
+  { value: "firstName",        label: "First name only",        example: "John" },
+  { value: "firstLast",        label: "First + last initial",   example: "John D." },
+  { value: "firstInitialLast", label: "Initial + last name",    example: "J. Doe" },
+  { value: "lastOnly",         label: "Last name only",         example: "Doe" },
+];
+
 interface Props {
   team?: Team;
   onSave: (team: Team) => void;
@@ -35,15 +48,17 @@ interface Props {
 export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
   const [teamName, setTeamName] = useState(team?.name ?? "");
   const [rows, setRows] = useState<RowData[]>(() => initRows(team));
+  const [nameFormat, setNameFormat] = useState<NameFormat>(team?.nameFormat ?? "lastOnly");
 
   function handleCellChange(id: string, field: "number" | "firstName" | "lastName", value: string) {
     setRows(prev => {
       const updated = prev.map(r => r.id === id ? { ...r, [field]: value } : r);
       const last = updated[updated.length - 1];
-      const filledCount = updated.filter(r => !isRowEmpty(r)).length;
-      if (!isRowEmpty(last) && filledCount < 30) {
+      // Only add a trailing empty row if the last row has name content AND we're under the limit
+      const filledCount = updated.filter(r => !isUntouched(r)).length;
+      if (!isUntouched(last) && filledCount < 30) {
         const lastNum = [...updated].reverse().find(r => r.number)?.number;
-        const nextNum = lastNum ? String(parseInt(lastNum) + 1) : String(updated.length + 1);
+        const nextNum = lastNum ? String(parseInt(lastNum) + 1) : String(filledCount + 1);
         updated.push(emptyRow(nextNum));
       }
       return updated;
@@ -51,7 +66,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
   }
 
   function handleSave() {
-    const valid = rows.filter(r => !isRowEmpty(r));
+    const valid = rows.filter(r => !isBlank(r) && !isUntouched(r));
     const sorted = [...valid].sort((a, b) => {
       const na = parseInt(a.number) || Infinity;
       const nb = parseInt(b.number) || Infinity;
@@ -67,6 +82,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
       id: team?.id ?? crypto.randomUUID(),
       name: teamName.trim() || "My Team",
       players,
+      nameFormat,
     });
   }
 
@@ -133,7 +149,27 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
       </div>
 
       {/* Footer */}
-      <div className="px-6 py-4 border-t border-zinc-800 flex-shrink-0">
+      <div className="px-6 py-4 border-t border-zinc-800 flex-shrink-0 flex flex-col gap-4">
+        {/* Name format selector */}
+        <div className="flex flex-col gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Display name on field</span>
+          <div className="grid grid-cols-2 gap-2">
+            {NAME_FORMAT_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                onClick={() => setNameFormat(opt.value)}
+                className={`rounded-lg px-3 py-2 text-sm text-left transition-colors border
+                  ${nameFormat === opt.value
+                    ? "bg-green-600 border-green-500 text-white"
+                    : "bg-zinc-800 border-zinc-700 text-zinc-300 hover:bg-zinc-700"}`}
+              >
+                <span className="font-semibold">{opt.example}</span>
+                <span className="block text-xs opacity-70 mt-0.5">{opt.label}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button
           onClick={handleSave}
           className="w-full bg-green-600 hover:bg-green-500 transition-colors rounded-lg px-4 py-3 text-sm font-semibold text-white"
