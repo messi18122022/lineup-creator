@@ -124,12 +124,22 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
           placeholder="Team name"
           className="flex-1 text-xl font-bold bg-transparent text-zinc-100 placeholder-zinc-600 outline-none border-b-2 border-transparent focus:border-green-500 transition-colors pb-0.5"
         />
-        <button
-          onClick={onClose}
-          className="text-zinc-400 hover:text-zinc-200 transition-colors text-lg leading-none"
-        >
-          ✕
-        </button>
+        {selectMode ? (
+          <button
+            onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
+            className="text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
+          >
+            Cancel
+          </button>
+        ) : (
+          <button
+            onClick={() => setSelectMode(true)}
+            disabled={filledRows.length === 0}
+            className="text-sm text-green-500 hover:text-green-400 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+          >
+            Select
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -138,23 +148,9 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
           <thead className="sticky top-0 bg-zinc-900 z-10">
             <tr>
               {selectMode && <th className="w-10" />}
-              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 w-24">#</th>
+              <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400 w-20">#</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">First Name</th>
               <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-400">Last Name</th>
-              <th className="px-4 py-3 text-right">
-                {selectMode ? (
-                  <button onClick={() => { setSelectMode(false); setSelectedIds(new Set()); }}
-                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors">
-                    Cancel
-                  </button>
-                ) : (
-                  <button onClick={() => setSelectMode(true)}
-                    className="text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
-                    disabled={filledRows.length === 0}>
-                    Select
-                  </button>
-                )}
-              </th>
             </tr>
           </thead>
           <tbody>
@@ -178,6 +174,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     onChange={e => handleCellChange(row.id, "number", e.target.value.replace(/\D/g, ""))}
                     inputMode="numeric"
                     placeholder="—"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-16 bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all text-center"
                   />
                 </td>
@@ -186,6 +183,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     value={row.firstName}
                     onChange={e => handleCellChange(row.id, "firstName", e.target.value)}
                     placeholder="First name"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-full bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all"
                   />
                 </td>
@@ -194,6 +192,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     value={row.lastName}
                     onChange={e => handleCellChange(row.id, "lastName", e.target.value)}
                     placeholder="Last name"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-full bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all"
                   />
                 </td>
