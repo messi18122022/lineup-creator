@@ -174,7 +174,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     onChange={e => handleCellChange(row.id, "number", e.target.value.replace(/\D/g, ""))}
                     inputMode="numeric"
                     placeholder="—"
-                    autoComplete="off" data-lpignore="true" data-1p-ignore data-form-type="other"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-16 bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all text-center"
                   />
                 </td>
@@ -183,7 +183,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     value={row.firstName}
                     onChange={e => handleCellChange(row.id, "firstName", e.target.value)}
                     placeholder="First name"
-                    autoComplete="off" data-lpignore="true" data-1p-ignore data-form-type="other"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-full bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all"
                   />
                 </td>
@@ -192,7 +192,7 @@ export default function TeamEditorSheet({ team, onSave, onClose }: Props) {
                     value={row.lastName}
                     onChange={e => handleCellChange(row.id, "lastName", e.target.value)}
                     placeholder="Last name"
-                    autoComplete="off" data-lpignore="true" data-1p-ignore data-form-type="other"
+                    autoComplete="off" data-lpignore="true" data-1p-ignore data-np-ignore="true" data-form-type="other"
                     className="w-full bg-zinc-800 rounded-lg px-2 py-1.5 text-sm text-zinc-100 placeholder-zinc-600 outline-none focus:ring-1 focus:ring-green-500 transition-all"
                   />
                 </td>
